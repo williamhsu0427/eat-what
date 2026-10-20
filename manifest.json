@@ -1,0 +1,2 @@
+{"name":"等一下吃什麼","short_name":"吃什麼","start_url":"./","id":"/eat-what/","scope":"./","display":"standalone","background_color":"#e65100","theme_color":"#e65100",
+"icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
