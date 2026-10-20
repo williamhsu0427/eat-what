@@ -59,6 +59,9 @@ dialog a{color:var(--main)}
 #res .nm{font-size:22px;font-weight:800;margin:10px 0 4px;line-height:1.3}
 #res .meta{font-size:14px}
 #res.spin .nm{opacity:.55}
+.dish{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.dish a{text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:8px 14px;font-size:15px}
+.big{display:block;text-align:center;text-decoration:none;color:#fff;border-radius:14px;padding:16px 12px;font-size:17px;font-weight:700;margin-top:10px}
 .empty{text-align:center;color:var(--sub);padding:40px 16px;line-height:1.7}
 footer{font-size:11px;color:var(--sub);text-align:center;padding:10px 0 4px}
 </style>
@@ -84,7 +87,7 @@ footer{font-size:11px;color:var(--sub);text-align:center;padding:10px 0 4px}
     <option value="5000">5 公里</option>
   </select>
 </div>
-<button class="draw" id="drawBtn">🎲 不知道吃什麼？隨機抽一家</button>
+<button class="draw" id="drawBtn">🎲 不知道吃什麼？隨機抽一個</button>
 <div id="list"></div>
 <dialog id="drawDlg">
   <div id="res"></div>
@@ -107,6 +110,22 @@ footer{font-size:11px;color:var(--sub);text-align:center;padding:10px 0 4px}
 const MODELS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite'];
 const CAT_NAME = { cn: '中式', it: '義式', th: '泰式' };
 const CAT_Q = { cn: '中式餐廳（含台菜、港式、川菜、麵館、小吃、火鍋等中華料理）', it: '義式餐廳（義大利麵、披薩、燉飯等義大利料理）', th: '泰式餐廳（泰國料理）' };
+// 免金鑰模式：每類的常見料理，點了直接開 Google 地圖搜尋附近
+const DISHES = {
+  cn: ['牛肉麵', '港式飲茶', '小籠包', '火鍋', '熱炒', '川菜', '滷肉飯', '水餃'],
+  it: ['義大利麵', '披薩', '燉飯', '義式餐酒館'],
+  th: ['泰式料理', '打拋豬', '綠咖哩', '泰式火鍋', '月亮蝦餅']
+};
+function gmapsSearch(q) {
+  return here ? `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${here.lat.toFixed(5)},${here.lon.toFixed(5)},15z`
+              : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('附近的' + q);
+}
+function freeView(k) {
+  return `<a class="big" style="background:${CAT_COLOR[k]}" href="${gmapsSearch(CAT_NAME[k] + '餐廳')}" target="_blank" rel="noopener">在 Google 地圖看附近的${CAT_NAME[k]}餐廳 ›</a>
+    <div class="dish">${DISHES[k].map(d => `<a href="${gmapsSearch(d)}" target="_blank" rel="noopener">${d}</a>`).join('')}</div>
+    <div class="tip" style="border-style:solid;border-color:var(--line)">打開 Google 地圖後，點上方的「評分」選 <b>4.0+</b>，就只會看到 4 分以上的店，點店家就能導航。</div>
+    <div class="tip">想直接在這個 App 裡看店家清單、評分和價位，也能隨機抽一家餐廳？可以設定一把免費的 Gemini 金鑰（不用綁卡，可不設）。<br><button onclick="openDlg()">設定金鑰</button></div>`;
+}
 const CAT_COLOR = { cn: 'var(--cn)', it: 'var(--it)', th: 'var(--th)' };
 const $ = id => document.getElementById(id);
 const store = {
@@ -161,12 +180,13 @@ function visible(k) {
 function render() {
   for (const k of ['cn', 'it', 'th']) {
     const R = res[k];
-    $('n-' + k).textContent = R?.state === 'done' ? visible(k).length + ' 家' : R?.state === 'loading' ? '查詢中' : '–';
+    $('n-' + k).textContent = !apiKey ? '開地圖' : R?.state === 'done' ? visible(k).length + ' 家' : R?.state === 'loading' ? '查詢中' : '–';
   }
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.k === cur));
+  $('only4').parentNode.style.display = $('radius').style.display = apiKey ? '' : 'none';
   const R = res[cur];
   let html = '';
-  if (!apiKey) html = '<div class="tip">要先設定一把<b>免費</b>的 Gemini 金鑰（不用綁卡），App 才能查 Google 地圖上的店家。<br><button onclick="openDlg()">設定金鑰</button></div>';
+  if (!apiKey) html = freeView(cur);
   else if (!here) html = '<div class="empty">定位中…</div>';
   else if (!R || R.state === 'loading') html = `<div class="tip">正在查 Google 地圖上 ${radText()} 內的${CAT_NAME[cur]}餐廳，約 10～30 秒…</div>`;
   else if (R.state === 'err') html = `<div class="tip">查詢失敗：${esc(R.err)}<br><button onclick="fetchCat(cur, true)">再查一次</button></div>`;
@@ -175,7 +195,7 @@ function render() {
     html = v.length ? v.map(card).join('') : `<div class="empty">${radText()}內沒有查到${$('only4').checked ? ' 4 分以上的' : ''}${CAT_NAME[cur]}餐廳<br>可以把範圍調大${$('only4').checked ? '或取消「只看 4 分以上」' : ''}試試</div>`;
     html += `<div class="empty" style="padding:12px"><button class="chip" onclick="fetchCat(cur, true)" style="border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:6px 14px">重新查詢</button></div>`;
   }
-  $('list').innerHTML = html + '<footer>店家資料由 Gemini 查詢 Google 地圖，僅供參考</footer>';
+  $('list').innerHTML = html + (apiKey ? '<footer>店家資料由 Gemini 查詢 Google 地圖，僅供參考</footer>' : '');
 }
 
 let mapsOff = false;
@@ -258,8 +278,22 @@ async function poolFor(k) {
   for (let i = 0; i < 120 && res[k]?.state === 'loading'; i++) await new Promise(r => setTimeout(r, 500));
   return visible(k);
 }
+async function drawFree() {
+  const box = $('res');
+  if (!$('drawDlg').open) $('drawDlg').showModal();
+  box.className = 'spin'; $('drawNav').style.visibility = 'hidden'; $('drawAgain').disabled = true;
+  const pick = () => { const k = ['cn', 'it', 'th'][Math.random() * 3 | 0]; return [k, DISHES[k][Math.random() * DISHES[k].length | 0]]; };
+  const t = setInterval(() => { const [k, d] = pick(); box.innerHTML = `<span class="cat" style="background:${CAT_COLOR[k]}">${CAT_NAME[k]}</span><div class="nm">${d}</div><div class="meta">抽籤中…</div>`; }, 90);
+  await new Promise(r => setTimeout(r, 1200));
+  clearInterval(t);
+  const [k, d] = pick();
+  box.className = ''; $('drawAgain').disabled = false;
+  box.innerHTML = `<span class="cat" style="background:${CAT_COLOR[k]}">${CAT_NAME[k]}</span><div class="nm">今天吃「${d}」！</div><div class="meta">按「找附近的店」會打開 Google 地圖，<br>點上方「評分」選 4.0+ 再挑一家導航。</div>`;
+  $('drawNav').textContent = '找附近的店'; $('drawNav').href = gmapsSearch(d); $('drawNav').style.visibility = '';
+}
 async function draw() {
-  if (!apiKey) return openDlg();
+  $('drawNav').textContent = '導航過去';
+  if (!apiKey) return drawFree();
   if (!here) { setStatus('還沒定位完成，請稍等或按「重新定位」', true); return; }
   const box = $('res');
   if (!$('drawDlg').open) $('drawDlg').showModal();
@@ -290,7 +324,7 @@ async function findArea() {
 }
 function located(p) {
   here = { lat: p.coords.latitude, lon: p.coords.longitude };
-  setStatus('已定位，查詢範圍 ' + radText());
+  setStatus(apiKey ? '已定位，查詢範圍 ' + radText() : '已定位');
   res = {}; render();
   findArea().finally(() => fetchCat(cur));
 }
@@ -316,7 +350,6 @@ $('dlgSave').onclick = () => { apiKey = $('key').value.trim(); store.set('gkey',
 $('only4').onchange = () => { store.set('only4', $('only4').checked ? '1' : '0'); render(); };
 $('radius').onchange = () => { store.set('rad', $('radius').value); res = {}; render(); here ? fetchCat(cur) : locate(); };
 render(); locate();
-if (!apiKey) setTimeout(openDlg, 600);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
