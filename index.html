@@ -9,8 +9,8 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
-:root{--bg:#f6f4f1;--card:#fff;--text:#22201d;--sub:#6b655e;--line:#e7e2db;--main:#e65100;--cn:#c62828;--it:#2e7d32;--th:#6a1b9a}
-@media (prefers-color-scheme:dark){:root{--bg:#141210;--card:#1f1c19;--text:#eeeae5;--sub:#a59d94;--line:#332e29;--main:#ff8a3d;--cn:#ef6a6a;--it:#5cbf63;--th:#c38be0}}
+:root{--bg:#f6f4f1;--card:#fff;--text:#22201d;--sub:#6b655e;--line:#e7e2db;--main:#e65100;--cn:#c62828;--it:#2e7d32;--th:#6a1b9a;--pick:#fff3e0;--pickt:#b34700}
+@media (prefers-color-scheme:dark){:root{--bg:#141210;--card:#1f1c19;--text:#eeeae5;--sub:#a59d94;--line:#332e29;--main:#ff8a3d;--cn:#ef6a6a;--it:#5cbf63;--th:#c38be0;--pick:#3a2a1a;--pickt:#ffb27a}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
 body{display:flex;flex-direction:column}
@@ -24,53 +24,42 @@ header button{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:
 .tab.on small{color:rgba(255,255,255,.85)}
 .tab[data-k=cn].on{background:var(--cn)}.tab[data-k=it].on{background:var(--it)}.tab[data-k=th].on{background:var(--th)}
 .bar{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:13px;color:var(--sub)}
-.bar select{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:5px 8px;font-size:13px}
+.bar span{flex:1;min-width:0}
+.bar select{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:5px 8px;font-size:13px}
 #status.err{color:var(--cn)}
+.draw{display:block;width:calc(100% - 24px);margin:2px 12px 0;border:0;border-radius:12px;padding:12px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(90deg,#e65100,#f9a825)}
 #list{flex:1;overflow:auto;padding:0 12px calc(16px + env(safe-area-inset-bottom))}
+.sec{font-size:13px;color:var(--sub);margin:16px 2px 0;font-weight:600}
+.sec small{font-weight:400}
 .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:8px}
+.item.pick{border-color:var(--main)}
 .top{display:flex;align-items:baseline;gap:8px}
 .top b{flex:1;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dist{font-size:13px;color:var(--sub);white-space:nowrap}
-.meta{font-size:13px;color:var(--sub);margin-top:3px;line-height:1.45}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:2px 7px;background:var(--pick);color:var(--pickt);margin-right:4px}
+.meta{font-size:13px;color:var(--sub);margin-top:4px;line-height:1.5}
+.meta a{color:var(--main)}
 .btns{display:flex;gap:6px;margin-top:10px}
 .btns a{flex:1;white-space:nowrap;text-align:center;text-decoration:none;font-size:14px;border-radius:10px;padding:9px 2px;border:1px solid var(--line);color:var(--text);background:var(--bg)}
 .btns a.nav{background:var(--main);border-color:var(--main);color:#fff;font-weight:600;flex:1.3}
-.star{display:inline-block;font-size:13px;font-weight:700;border-radius:8px;padding:2px 7px;background:#fff3e0;color:#e65100;white-space:nowrap}
-@media (prefers-color-scheme:dark){.star{background:#3a2a1a;color:#ffb27a}}
-.star.no{background:var(--bg);color:var(--sub);font-weight:400}
-.ai{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 5px;color:var(--sub);margin-left:4px}
-.sec{font-size:13px;color:var(--sub);margin:16px 2px 0}
-.tip{background:var(--card);border:1px dashed var(--main);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6}
-.tip button{border:0;background:var(--main);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px}
-label.tg{display:flex;align-items:center;gap:4px}
+.empty{text-align:center;color:var(--sub);padding:28px 16px;line-height:1.7;font-size:14px}
+.empty button{border:0;background:var(--main);color:#fff;border-radius:8px;padding:7px 12px;font-size:14px;margin-top:6px}
 dialog{border:0;border-radius:16px;padding:18px;max-width:420px;width:calc(100% - 32px);background:var(--card);color:var(--text)}
 dialog::backdrop{background:rgba(0,0,0,.45)}
-dialog h2{font-size:17px;margin:0 0 8px}
-dialog p,dialog li{font-size:14px;line-height:1.6;color:var(--sub)}
-dialog ol{padding-left:20px;margin:6px 0}
-dialog input{width:100%;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);margin:8px 0}
-dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
-dialog .row button{border:0;border-radius:10px;padding:9px 14px;font-size:15px;background:var(--bg);color:var(--text)}
-dialog .row button.pri{background:var(--main);color:#fff}
-dialog a{color:var(--main)}
-.draw{display:block;width:calc(100% - 24px);margin:8px 12px 0;border:0;border-radius:12px;padding:12px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(90deg,#e65100,#f9a825)}
-.price{color:var(--text)}
 #res .cat{display:inline-block;color:#fff;border-radius:8px;padding:2px 10px;font-size:14px;font-weight:600}
 #res .nm{font-size:22px;font-weight:800;margin:10px 0 4px;line-height:1.3}
-#res .meta{font-size:14px}
-#res.spin .nm{opacity:.55}
-.dish{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.dish a{text-decoration:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:8px 14px;font-size:15px}
-.big{display:block;text-align:center;text-decoration:none;color:#fff;border-radius:14px;padding:16px 12px;font-size:17px;font-weight:700;margin-top:10px}
-.empty{text-align:center;color:var(--sub);padding:40px 16px;line-height:1.7}
-footer{font-size:11px;color:var(--sub);text-align:center;padding:10px 0 4px}
+#res.spin .nm{opacity:.5}
+#res .row{display:flex;gap:8px;margin-top:14px}
+#res .row button,#res .row a{flex:1;text-align:center;text-decoration:none;border:0;border-radius:12px;padding:13px 6px;font-size:16px;font-weight:700}
+#res .row button{background:var(--bg);color:var(--text)}
+#res .row a{background:var(--main);color:#fff}
+footer{font-size:11px;color:var(--sub);text-align:center;padding:14px 0 4px;line-height:1.6}
 </style>
 </head>
 <body>
 <header>
   <h1>🍜 等一下吃什麼</h1>
   <button id="reload">重新定位</button>
-  <button id="gear" aria-label="設定">⚙︎</button>
 </header>
 <div class="tabs">
   <button class="tab on" data-k="cn">中式<small id="n-cn">–</small></button>
@@ -79,278 +68,206 @@ footer{font-size:11px;color:var(--sub);text-align:center;padding:10px 0 4px}
 </div>
 <div class="bar">
   <span id="status">定位中…</span>
-  <label class="tg"><input type="checkbox" id="only4" checked>只看 4 分以上</label>
   <select id="radius">
     <option value="1000">1 公里</option>
     <option value="2000">2 公里</option>
-    <option value="3000" selected>3 公里</option>
-    <option value="5000">5 公里</option>
+    <option value="3000">3 公里</option>
+    <option value="5000" selected>5 公里</option>
   </select>
 </div>
-<button class="draw" id="drawBtn">🎲 不知道吃什麼？隨機抽一個</button>
+<button class="draw" id="draw">🎲 幫我抽一家</button>
 <div id="list"></div>
-<dialog id="drawDlg">
-  <div id="res"></div>
-  <div class="row"><button id="drawClose">關閉</button><button id="drawAgain">再抽一次</button><a class="pri" id="drawNav" target="_blank" rel="noopener" style="text-decoration:none;border-radius:10px;padding:9px 14px;font-size:15px;background:var(--main);color:#fff">導航過去</a></div>
-</dialog>
-<dialog id="dlg">
-  <h2>Google 地圖設定</h2>
-  <p>店家、評分、價位都是請 Google 的 Gemini AI 查 Google 地圖，跟部落格產生器同一招。需要一把<b>免費</b>的 Gemini 金鑰，不用綁卡：</p>
-  <ol>
-    <li>打開 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>，用 Google 帳號登入</li>
-    <li>按「建立 API 金鑰」，複製起來</li>
-    <li>貼到下面，按儲存</li>
-  </ol>
-  <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="貼上 Gemini API 金鑰">
-  <p style="font-size:12px">金鑰只存在這支手機裡。免費額度每天可以查好幾百次，個人用不會超過；萬一超過只會暫時查不到，不會收費。</p>
-  <div class="row"><button id="dlgClose">取消</button><button class="pri" id="dlgSave">儲存</button></div>
-</dialog>
-<script>
-// 店家資料：請 Gemini 用 Google 地圖（不行就用 Google 搜尋）查附近餐廳。只需要免費的 Gemini 金鑰，不用綁卡。
-const MODELS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite'];
-const CAT_NAME = { cn: '中式', it: '義式', th: '泰式' };
-const CAT_Q = { cn: '中式餐廳（含台菜、港式、川菜、麵館、小吃、火鍋等中華料理）', it: '義式餐廳（義大利麵、披薩、燉飯等義大利料理）', th: '泰式餐廳（泰國料理）' };
-// 免金鑰模式：每類的常見料理，點了直接開 Google 地圖搜尋附近
-const DISHES = {
-  cn: ['牛肉麵', '港式飲茶', '小籠包', '火鍋', '熱炒', '川菜', '滷肉飯', '水餃'],
-  it: ['義大利麵', '披薩', '燉飯', '義式餐酒館'],
-  th: ['泰式料理', '打拋豬', '綠咖哩', '泰式火鍋', '月亮蝦餅']
-};
-function gmapsSearch(q) {
-  return here ? `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${here.lat.toFixed(5)},${here.lon.toFixed(5)},15z`
-              : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('附近的' + q);
-}
-function freeView(k) {
-  return `<a class="big" style="background:${CAT_COLOR[k]}" href="${gmapsSearch(CAT_NAME[k] + '餐廳')}" target="_blank" rel="noopener">在 Google 地圖看附近的${CAT_NAME[k]}餐廳 ›</a>
-    <div class="dish">${DISHES[k].map(d => `<a href="${gmapsSearch(d)}" target="_blank" rel="noopener">${d}</a>`).join('')}</div>
-    <div class="tip" style="border-style:solid;border-color:var(--line)">打開 Google 地圖後，點上方的「評分」選 <b>4.0+</b>，就只會看到 4 分以上的店，點店家就能導航。</div>
-    <div class="tip">想直接在這個 App 裡看店家清單、評分和價位，也能隨機抽一家餐廳？可以設定一把免費的 Gemini 金鑰（不用綁卡，可不設）。<br><button onclick="openDlg()">設定金鑰</button></div>`;
-}
-const CAT_COLOR = { cn: 'var(--cn)', it: 'var(--it)', th: 'var(--th)' };
-const $ = id => document.getElementById(id);
-const store = {
-  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
-};
-let here = null, area = '', cur = store.get('tab') || 'cn', apiKey = store.get('gkey') || '';
-let res = {}; // 每類：{ state: 'loading'|'done'|'err', items: [], err }
-$('only4').checked = store.get('only4') !== '0';
-if (store.get('rad')) $('radius').value = store.get('rad');
 
+<dialog id="dlg"><div id="res"></div></dialog>
+
+<script>
+// 網友推薦名單：景平站一帶，整理自食記與美食平台（座標為約略位置，導航用店名＋地址）
+const PICKS = [
+  {k:'cn', n:'蘇記嘀兜雞', a:'新北市中和區景平路154號', lat:24.9918, lon:121.5190, d:'豬肚雞火鍋，招牌白胡椒湯頭', src:'https://woment.com.tw/12432/mrt-y10-food/'},
+  {k:'cn', n:'麵麵軒', a:'新北市中和區景平路240巷2弄17號', lat:24.9936, lon:121.5158, d:'重慶小麵、酸辣粉、鮮蝦餛飩麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:'cn', n:'景平洞天 粵式煲湯獨享鍋', a:'新北市中和區景平路240巷2弄3號', lat:24.9934, lon:121.5157, d:'個人煲湯鍋＋自助吧，魚滿鍋', src:'https://mibaoma.tw/dongtianhotpot/'},
+  {k:'cn', n:'港都熱炒', a:'新北市中和區大勇街12號', lat:24.9932, lon:121.5168, d:'粵菜大廚熱炒，開到深夜，宵夜好去處', src:'https://eggie.tw/blog/post/228321956'},
+  {k:'cn', n:'永芳陳家祖傳美食', a:'新北市中和區大勇街25巷2號', lat:24.9936, lon:121.5163, d:'在地老字號小吃', src:'https://ifoodie.tw/explore/%E6%96%B0%E5%8C%97%E5%B8%82/list/%E6%99%AF%E5%B9%B3%E8%B7%AF%E7%BE%8E%E9%A3%9F'},
+  {k:'it', n:'尼西義大利麵', a:'新北市中和區景平路240巷2弄13號', lat:24.9935, lon:121.5157, d:'百元手工醬料義大利麵，CP 值高', src:'https://mibaoma.tw/nissipasta_juliano2005/'},
+  {k:'it', n:'水牛哥義式坊', a:'新北市中和區景平路240巷1弄2號', lat:24.9930, lon:121.5155, d:'照燒章魚披薩、清炒蒜香海鮮麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:'it', n:'傑米義式小坊', a:'新北市中和區大勇街27巷2號', lat:24.9938, lon:121.5165, d:'墨魚起司海鮮義大利麵', src:'https://www.gomaji.com/blog/%E4%B8%AD%E5%92%8C%E7%BE%A9%E5%A4%A7%E5%88%A9%E9%BA%B5/'},
+  {k:'it', n:'木可義式廚房', a:'新北市中和區自立路13號', lat:24.9951, lon:121.5221, d:'清炒系列最受歡迎，100～200 元', src:'https://www.fonfood.com/store/285759'},
+  {k:'th', n:'泰可愛 SiamCute', a:'新北市中和區大勇街25巷15弄3號', lat:24.9940, lon:121.5152, d:'道地泰菜兼賣雜貨，泰式魚餅、咖哩海鮮', src:'https://ifoodie.tw/post/5f78618e8c906d7393617031'},
+  {k:'th', n:'泰香館泰式料理', a:'新北市中和區景平路274號', lat:24.9926, lon:121.5142, d:'小店大人潮，月亮蝦餅、椒麻雞排', src:'https://justamy9282.pixnet.net/blog/post/462623897'},
+  {k:'th', n:'素速泰 SusuThai', a:'新北市中和區景平路298號', lat:24.9926, lon:121.5132, d:'純素泰式，椰汁紅咖哩飯', src:'https://lololo223344.pixnet.net/blog/post/346504113'},
+  {k:'th', n:'泰糯糯泰式料理', a:'新北市中和區安樂路41號', lat:24.9920, lon:121.5117, d:'青木瓜沙拉、羅望子炒蝦，白飯續到飽', src:'https://may128.com/thai-noir-cuisine/'},
+  {k:'th', n:'雲川泰緬小館', a:'新北市中和區景平路462號', lat:24.9930, lon:121.5065, d:'超厚月亮蝦餅、酸辣海鮮湯', src:'https://ifoodie.tw/post/5e96b07dd6895d7c5ebdcdab'},
+];
+const NAME = {cn:'中式', it:'義式', th:'泰式'};
+const COLOR = {cn:'var(--cn)', it:'var(--it)', th:'var(--th)'};
+const JINGPING = {lat:24.9920, lon:121.5159};
+// 開放地圖（OpenStreetMap）資料，免金鑰；主站忙時換備用站
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+
+const $ = id => document.getElementById(id);
+let here = null, cat = 'cn', nearby = [], approx = false;
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function dist(a, b) {
   const R = 6371000, r = Math.PI / 180;
-  const dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r;
-  const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
+  const x = Math.sin((b.lat - a.lat) * r / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin((b.lon - a.lon) * r / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
 }
-function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
-function setStatus(s, err) { $('status').textContent = s; $('status').className = err ? 'err' : ''; }
-function radText() { const r = +$('radius').value; return r >= 1000 ? r / 1000 + ' 公里' : r + ' 公尺'; }
-function distText(d) {
-  if (d == null) return '';
-  if (d < 1000) return Math.round(d) + ' 公尺・走路約 ' + Math.max(1, Math.round(d / 75)) + ' 分';
-  return (d / 1000).toFixed(1) + ' 公里' + (d <= 1500 ? '・走路約 ' + Math.round(d / 75) + ' 分' : '・騎車約 ' + Math.max(3, Math.round(d / 300)) + ' 分');
+function fmt(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' 公尺' : (m / 1000).toFixed(1) + ' 公里'; }
+
+// 分類：先看地圖上的料理標籤，沒有就看店名
+const CN_TAG = /chinese|taiwanese|cantonese|sichuan|hunan|shanghai|beijing|noodle|dumpling|hot_pot|congee|dim_sum|xiaolongbao|hong_kong|teochew|hakka/;
+const NOT_CN = /japanese|korean|ramen|sushi|udon|vietnamese|indian|american|burger|western|italian|thai|pizza|steak|french|mexican|coffee/;
+const IT_NAME = /義大利|義式|意大利|pasta|pizza|披薩|比薩|trattoria|osteria|pizzeria/i;
+const TH_NAME = /泰式|泰國|泰菜|泰緬|thai|曼谷|打拋|月亮蝦餅|^泰/i;
+const CN_NAME = /麵|麪|飯|熱炒|快炒|小館|餃|包子|小籠|湯包|粥|火鍋|涮涮|川菜|川味|粵|港式|燒臘|台菜|便當|點心|酸菜魚|麻辣|滷|羹|焿|小吃|食堂|豆漿|炒/;
+const NOT_CN_NAME = /拉麵|烏龍|日式|韓|丼|壽司|義|泰|越|印度|咖哩|漢堡|pasta|ramen|居酒屋|燒肉|定食|早午餐|brunch|麥當勞|肯德基|摩斯|subway/i;
+function classify(t) {
+  const c = (t.cuisine || '').toLowerCase(), n = t.name || '';
+  if (/italian|pizza|pasta/.test(c) || IT_NAME.test(n)) return 'it';
+  if (/thai/.test(c) || TH_NAME.test(n)) return 'th';
+  if (CN_TAG.test(c) && !NOT_CN.test(c)) return 'cn';
+  if (!c && CN_NAME.test(n) && !NOT_CN_NAME.test(n)) return 'cn';
+  return null;
 }
-function mapsQuery(x) { return encodeURIComponent(x.name + (x.address ? ' ' + x.address : '')); }
-function navUrl(x) {
-  return 'https://www.google.com/maps/dir/?api=1&travelmode=' + (x.d != null && x.d <= 1500 ? 'walking' : 'driving') +
-    '&destination=' + mapsQuery(x) + (x.placeId ? '&destination_place_id=' + encodeURIComponent(x.placeId) : '');
+
+async function overpass(q) {
+  let last;
+  for (const u of OVERPASS) {
+    try {
+      const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 30000);
+      const r = await fetch(u, {method:'POST', body:'data=' + encodeURIComponent(q), headers:{'Content-Type':'application/x-www-form-urlencoded'}, signal:ctl.signal});
+      clearTimeout(tm);
+      if (r.ok) return await r.json();
+      last = new Error('HTTP ' + r.status);
+    } catch (e) { last = e; }
+  }
+  throw last;
 }
-function card(x) {
-  const g = 'https://www.google.com/maps/search/?api=1&query=' + mapsQuery(x) + (x.placeId ? '&query_place_id=' + encodeURIComponent(x.placeId) : '');
-  const tag = x.name.replace(/[\s\p{P}\p{S}]/gu, '');
-  const ig = 'https://www.instagram.com/explore/tags/' + encodeURIComponent(tag) + '/';
-  const th = 'https://www.threads.net/search?q=' + encodeURIComponent(x.name);
-  const star = x.r != null ? `<span class="star">★ ${x.r.toFixed(1)}${x.n ? `・${x.n} 則` : ''}</span>` : '<span class="star no">查無評分</span>';
-  const meta = [distText(x.d), x.p && '💰 ' + x.p, x.type, x.address].filter(Boolean).map(esc).join('<br>');
-  return `<div class="item">
-    <div class="top"><b>${esc(x.name)}</b>${star}</div>
-    ${meta ? `<div class="meta">${meta}</div>` : ''}
+
+async function loadNearby() {
+  const R = 5000, key = 'near:' + here.lat.toFixed(3) + ',' + here.lon.toFixed(3);
+  try {
+    const c = JSON.parse(localStorage.getItem(key) || 'null');
+    if (c && Date.now() - c.t < 864e5) return c.v;
+  } catch (e) {}
+  const q = `[out:json][timeout:25];nwr["amenity"~"^(restaurant|fast_food|food_court)$"]["name"](around:${R},${here.lat},${here.lon});out center tags;`;
+  const d = await overpass(q);
+  const v = [];
+  for (const e of d.elements) {
+    const t = e.tags || {}, k = classify(t);
+    const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon;
+    if (!k || lat == null) continue;
+    const addr = [t['addr:street'], t['addr:housenumber'] && t['addr:housenumber'] + '號'].filter(Boolean).join('');
+    v.push({k, n:t.name, lat, lon, a:addr, h:t.opening_hours || ''});
+  }
+  try {
+    for (const x of Object.keys(localStorage)) if (x.startsWith('near:')) localStorage.removeItem(x);
+    localStorage.setItem(key, JSON.stringify({t:Date.now(), v}));
+  } catch (e) {}
+  return v;
+}
+
+function navUrl(s) {
+  const dest = s.src ? s.n + ' ' + s.a : s.lat + ',' + s.lon;
+  return 'https://www.google.com/maps/dir/?api=1&travelmode=' + (s.m > 1500 ? 'driving' : 'walking') + '&destination=' + encodeURIComponent(dest);
+}
+function threadsUrl(s) { return 'https://www.threads.net/search?q=' + encodeURIComponent(s.n + ' 中和') + '&serp_type=default'; }
+function igUrl(s) { return 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(s.n); }
+
+function card(s, pick) {
+  return `<div class="item${pick ? ' pick' : ''}">
+    <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
+    <div class="meta">${pick ? '<span class="badge">網友推薦</span>' + esc(s.d) + '　<a href="' + s.src + '" target="_blank" rel="noopener">看食記</a><br>' : ''}${esc(s.a || '')}${s.h ? '<br>營業：' + esc(s.h) : ''}</div>
     <div class="btns">
-      <a class="nav" href="${navUrl(x)}" target="_blank" rel="noopener">導航</a>
-      <a href="${g}" target="_blank" rel="noopener">評論</a>
-      <a href="${ig}" target="_blank" rel="noopener">IG</a>
-      <a href="${th}" target="_blank" rel="noopener">Threads</a>
+      <a class="nav" href="${navUrl(s)}" target="_blank" rel="noopener">🧭 導航</a>
+      <a href="${threadsUrl(s)}" target="_blank" rel="noopener">Threads</a>
+      <a href="${igUrl(s)}" target="_blank" rel="noopener">IG</a>
     </div></div>`;
 }
-function visible(k) {
-  const items = res[k]?.items || [];
-  return $('only4').checked ? items.filter(x => x.r >= 4) : items;
+
+function pool(k) {
+  const R = +$('radius').value;
+  const withD = arr => arr.filter(s => s.k === k).map(s => ({...s, m:dist(here, s)})).filter(s => s.m <= R).sort((a, b) => a.m - b.m);
+  const picks = withD(PICKS);
+  const names = new Set(picks.map(p => p.n.slice(0, 3)));
+  const near = withD(nearby).filter(s => !names.has(s.n.slice(0, 3)));
+  return {picks, near};
 }
+
+let loading = true, failed = false;
 function render() {
+  if (!here) return;
   for (const k of ['cn', 'it', 'th']) {
-    const R = res[k];
-    $('n-' + k).textContent = !apiKey ? '開地圖' : R?.state === 'done' ? visible(k).length + ' 家' : R?.state === 'loading' ? '查詢中' : '–';
+    const p = pool(k);
+    $('n-' + k).textContent = loading ? '找店中…' : (p.picks.length + p.near.length) + ' 家';
   }
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.k === cur));
-  $('only4').parentNode.style.display = $('radius').style.display = apiKey ? '' : 'none';
-  const R = res[cur];
-  let html = '';
-  if (!apiKey) html = freeView(cur);
-  else if (!here) html = '<div class="empty">定位中…</div>';
-  else if (!R || R.state === 'loading') html = `<div class="tip">正在查 Google 地圖上 ${radText()} 內的${CAT_NAME[cur]}餐廳，約 10～30 秒…</div>`;
-  else if (R.state === 'err') html = `<div class="tip">查詢失敗：${esc(R.err)}<br><button onclick="fetchCat(cur, true)">再查一次</button></div>`;
-  else {
-    const v = visible(cur);
-    html = v.length ? v.map(card).join('') : `<div class="empty">${radText()}內沒有查到${$('only4').checked ? ' 4 分以上的' : ''}${CAT_NAME[cur]}餐廳<br>可以把範圍調大${$('only4').checked ? '或取消「只看 4 分以上」' : ''}試試</div>`;
-    html += `<div class="empty" style="padding:12px"><button class="chip" onclick="fetchCat(cur, true)" style="border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:6px 14px">重新查詢</button></div>`;
-  }
-  $('list').innerHTML = html + (apiKey ? '<footer>店家資料由 Gemini 查詢 Google 地圖，僅供參考</footer>' : '');
+  const {picks, near} = pool(cat);
+  let h = '';
+  if (picks.length) h += `<div class="sec">⭐ 網友推薦 <small>景平站一帶</small></div>` + picks.map(s => card(s, true)).join('');
+  h += `<div class="sec">📍 附近${NAME[cat]}店家 <small>由近到遠</small></div>`;
+  if (loading) h += '<div class="empty">正在找附近店家…</div>';
+  else if (failed) h += '<div class="empty">附近店家暫時抓不到（地圖資料站忙線）。<br><button onclick="start(true)">再試一次</button></div>';
+  else if (!near.length) h += `<div class="empty">這個範圍內沒找到${NAME[cat]}店家，試試把範圍調大。</div>`;
+  else h += near.slice(0, 80).map(s => card(s, false)).join('');
+  h += '<footer>附近店家來自 OpenStreetMap 開放地圖，免金鑰<br>網友推薦整理自食記與美食平台，出發前建議先確認營業時間</footer>';
+  $('list').innerHTML = h;
 }
 
-let mapsOff = false;
-async function gemini(prompt) {
-  const ll = { latitude: here.lat, longitude: here.lon };
-  // 先試 Google 地圖查詢，帳號不支援就改用 Google 搜尋
-  const bodies = [
-    { contents: [{ role: 'user', parts: [{ text: prompt }] }], tools: [{ googleMaps: {} }], toolConfig: { retrievalConfig: { latLng: ll, languageCode: 'zh-TW' } } },
-    { contents: [{ role: 'user', parts: [{ text: prompt }] }], tools: [{ google_search: {} }] }
-  ];
-  let last = '';
-  for (const body of bodies) for (const m of MODELS) {
-    if (body.tools[0].googleMaps && mapsOff) break;
-    let r;
-    try {
-      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
-        method: 'POST', headers: { 'x-goog-api-key': apiKey, 'content-type': 'application/json' }, body: JSON.stringify(body)
-      });
-    } catch (e) { last = '網路連不上，請確認手機有網路'; continue; }
-    if (r.ok) {
-      const j = await r.json(), c = j.candidates?.[0] || {};
-      const text = (c.content?.parts || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
-      const places = (c.groundingMetadata?.groundingChunks || []).map(x => x.maps).filter(Boolean);
-      if (text.includes('{')) return { text, places };
-      last = 'AI 沒有回傳店家資料'; continue;
+function getPos() {
+  return new Promise(res => {
+    if (!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition(p => res({lat:p.coords.latitude, lon:p.coords.longitude}), () => res(null), {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
+  });
+}
+
+async function start(retry) {
+  $('status').classList.remove('err');
+  if (!retry || !here) {
+    $('status').textContent = '定位中…';
+    const p = await getPos();
+    approx = !p;
+    here = p || JINGPING;
+  }
+  $('status').textContent = approx ? '抓不到定位，先用景平站' : '已用你目前的位置';
+  if (approx) $('status').classList.add('err');
+  loading = true; failed = false; render();
+  try { nearby = await loadNearby(); }
+  catch (e) { failed = true; nearby = []; }
+  loading = false; render();
+}
+
+function drawOne() {
+  const {picks, near} = pool(cat);
+  const res = $('res');
+  if (!picks.length && !near.length) { res.innerHTML = '<p>這個範圍內還沒有店家可以抽。</p><div class="row"><button onclick="dlg.close()">好</button></div>'; dlg.showModal(); return; }
+  // 網友推薦的店多放幾次，比較容易抽到
+  const bag = picks.flatMap(s => [s, s, s]).concat(near);
+  let i = 0, s;
+  res.className = 'spin'; dlg.showModal();
+  const tick = () => {
+    s = bag[Math.floor(Math.random() * bag.length)];
+    res.innerHTML = `<span class="cat" style="background:${COLOR[cat]}">${NAME[cat]}</span><div class="nm">${esc(s.n)}</div><div class="meta">${fmt(s.m)}</div>`;
+    if (++i < 14) setTimeout(tick, 40 + i * 12);
+    else {
+      res.className = '';
+      res.innerHTML += `<div class="meta">${s.d ? '⭐ 網友推薦：' + esc(s.d) : esc(s.a || '')}</div>
+        <div class="row"><button onclick="drawOne()">再抽一次</button><a href="${navUrl(s)}" target="_blank" rel="noopener">🧭 出發</a></div>`;
     }
-    let msg = 'HTTP ' + r.status;
-    try { msg = (await r.json()).error?.message || msg; } catch (e) {}
-    if (r.status === 401 || r.status === 403 || /API key not valid/i.test(msg)) throw new Error('金鑰無效，請按右上角 ⚙︎ 重新設定');
-    if (body.tools[0].googleMaps && r.status === 400) { mapsOff = true; break; } // 這把金鑰不支援 Google 地圖查詢，之後直接用 Google 搜尋
-    last = r.status === 429 ? '今天的免費額度用完了，明天會自動恢復' : msg;
-  }
-  throw new Error(last);
+  };
+  tick();
 }
 
-async function fetchCat(k, force) {
-  if (!apiKey || !here || res[k]?.state === 'loading' || (res[k]?.state === 'done' && !force)) return;
-  const rad = +$('radius').value;
-  const ck = 'g1:' + k + ':' + here.lat.toFixed(3) + ',' + here.lon.toFixed(3) + ':' + rad;
-  if (!force) {
-    try {
-      const c = JSON.parse(store.get(ck));
-      if (c && Date.now() - c.t < 6 * 3600e3) { res[k] = { state: 'done', items: c.items }; render(); return; }
-    } catch (e) {}
-  }
-  res[k] = { state: 'loading' }; render();
-  const prompt = `我現在在台灣，位置是緯度 ${here.lat.toFixed(5)}、經度 ${here.lon.toFixed(5)}${area ? `（${area}附近）` : ''}。
-請查 Google 地圖，列出離我 ${rad} 公尺以內、目前仍有營業的${CAT_Q[k]}，最多 15 家，評分高的優先。
-
-只回傳一個 JSON 物件，不要其他文字、不要程式碼框：
-{"places":[{"name":"Google 地圖上的店名","address":"完整地址","lat":25.04,"lon":121.54,"rating":4.3,"reviews":512,"price":"$200-400","type":"例如 牛肉麵、港式飲茶"}]}
-規則：只列真的存在、在範圍內的店；rating 和 reviews 用 Google 地圖上的數字；price 是每人平均消費（新台幣），查不到填空字串；lat、lon 查不到填 null；絕對不可以編造。`;
-  try {
-    const { text, places } = await gemini(prompt);
-    const j = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
-    const seen = new Set();
-    const items = (j.places || []).filter(e => e && e.name && !seen.has(e.name) && seen.add(e.name)).map(e => {
-      const lat = parseFloat(e.lat), lon = parseFloat(e.lon), r = parseFloat(e.rating);
-      let d = isFinite(lat) && isFinite(lon) ? dist(here, { lat, lon }) : null;
-      if (d != null && d > rad * 3) d = null; // 座標明顯不對就不顯示距離
-      const pm = places.find(p => p.title && (p.title === e.name || p.title.includes(e.name) || e.name.includes(p.title)));
-      const pr = String(e.price ?? '').trim();
-      return {
-        name: String(e.name), address: String(e.address || ''), d, r: r > 0 && r <= 5 ? r : null, n: parseInt(e.reviews) || null,
-        p: /\d/.test(pr) && pr.length < 30 ? '每人約 ' + pr.replace(/^每人(約)?/, '') : '', type: String(e.type || '').slice(0, 30),
-        placeId: pm?.placeId ? String(pm.placeId).replace(/^places\//, '') : ''
-      };
-    }).sort((a, b) => (a.d ?? 9e9) - (b.d ?? 9e9) || (b.r ?? 0) - (a.r ?? 0));
-    res[k] = { state: 'done', items };
-    store.set(ck, JSON.stringify({ t: Date.now(), items }));
-  } catch (e) {
-    res[k] = { state: 'err', err: e.message || '查詢失敗' };
-  }
-  render();
-}
-
-// 隨機抽：先隨機選料理種類，再從該類（有勾 4 分以上就只抽 4 分以上）抽一家
-async function poolFor(k) {
-  fetchCat(k);
-  for (let i = 0; i < 120 && res[k]?.state === 'loading'; i++) await new Promise(r => setTimeout(r, 500));
-  return visible(k);
-}
-async function drawFree() {
-  const box = $('res');
-  if (!$('drawDlg').open) $('drawDlg').showModal();
-  box.className = 'spin'; $('drawNav').style.visibility = 'hidden'; $('drawAgain').disabled = true;
-  const pick = () => { const k = ['cn', 'it', 'th'][Math.random() * 3 | 0]; return [k, DISHES[k][Math.random() * DISHES[k].length | 0]]; };
-  const t = setInterval(() => { const [k, d] = pick(); box.innerHTML = `<span class="cat" style="background:${CAT_COLOR[k]}">${CAT_NAME[k]}</span><div class="nm">${d}</div><div class="meta">抽籤中…</div>`; }, 90);
-  await new Promise(r => setTimeout(r, 1200));
-  clearInterval(t);
-  const [k, d] = pick();
-  box.className = ''; $('drawAgain').disabled = false;
-  box.innerHTML = `<span class="cat" style="background:${CAT_COLOR[k]}">${CAT_NAME[k]}</span><div class="nm">今天吃「${d}」！</div><div class="meta">按「找附近的店」會打開 Google 地圖，<br>點上方「評分」選 4.0+ 再挑一家導航。</div>`;
-  $('drawNav').textContent = '找附近的店'; $('drawNav').href = gmapsSearch(d); $('drawNav').style.visibility = '';
-}
-async function draw() {
-  $('drawNav').textContent = '導航過去';
-  if (!apiKey) return drawFree();
-  if (!here) { setStatus('還沒定位完成，請稍等或按「重新定位」', true); return; }
-  const box = $('res');
-  if (!$('drawDlg').open) $('drawDlg').showModal();
-  box.className = 'spin'; $('drawNav').style.visibility = 'hidden'; $('drawAgain').disabled = true;
-  const all = ['cn', 'it', 'th'].flatMap(k => (res[k]?.items || []).map(x => [k, x]));
-  const t = setInterval(() => {
-    const [k, x] = all.length ? all[Math.random() * all.length | 0] : [['cn', 'it', 'th'][Math.random() * 3 | 0], null];
-    box.innerHTML = `<span class="cat" style="background:${CAT_COLOR[k]}">${CAT_NAME[k]}</span><div class="nm">${x ? esc(x.name) : '抽籤中…'}</div><div class="meta">抽籤中…（第一次抽會先查店家，要等一下）</div>`;
-  }, 90);
-  let k, x;
-  for (k of ['cn', 'it', 'th'].sort(() => Math.random() - .5)) { const pool = await poolFor(k); if (pool.length) { x = pool[Math.random() * pool.length | 0]; break; } }
-  await new Promise(r => setTimeout(r, 900));
-  clearInterval(t); box.className = ''; $('drawAgain').disabled = false;
-  if (!x) { box.innerHTML = '<div class="nm">附近沒有可以抽的店</div><div class="meta">把範圍調大或取消「只看 4 分以上」再試試</div>'; return; }
-  box.innerHTML = `<span class="cat" style="background:${CAT_COLOR[k]}">${CAT_NAME[k]}</span><div class="nm">${esc(x.name)}</div>
-    <div class="meta">${[x.r != null && `★ ${x.r.toFixed(1)}${x.n ? `（${x.n} 則評論）` : ''}`, x.p && '💰 ' + x.p, distText(x.d), x.address].filter(Boolean).map(esc).join('<br>')}</div>`;
-  $('drawNav').href = navUrl(x); $('drawNav').style.visibility = '';
-}
-
-function openDlg() { $('key').value = apiKey; $('dlg').showModal(); }
-
-async function findArea() {
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&accept-language=zh-TW&lat=${here.lat}&lon=${here.lon}`);
-    const a = (await r.json()).address || {};
-    area = [a.city || a.county, a.town || a.suburb || a.city_district, a.road].filter(Boolean).join('');
-  } catch (e) { area = ''; }
-}
-function located(p) {
-  here = { lat: p.coords.latitude, lon: p.coords.longitude };
-  setStatus(apiKey ? '已定位，查詢範圍 ' + radText() : '已定位');
-  res = {}; render();
-  findArea().finally(() => fetchCat(cur));
-}
-function locate() {
-  if (!navigator.geolocation) { setStatus('這支手機不支援定位', true); return; }
-  setStatus('定位中…');
-  navigator.geolocation.getCurrentPosition(located, e => {
-    if (e.code === 1) return setStatus('請允許「位置」權限（網址列左邊圖示 → 權限 → 位置），再按「重新定位」', true);
-    // 高精度定位逾時（室內常發生）就改用網路定位再試一次
-    navigator.geolocation.getCurrentPosition(located, () => setStatus('定位失敗，請確認手機有開「定位」，再按「重新定位」', true),
-      { enableHighAccuracy: false, timeout: 20000, maximumAge: 300000 });
-  }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
-}
-
-document.querySelectorAll('.tab').forEach(b => b.onclick = () => { cur = b.dataset.k; store.set('tab', cur); render(); fetchCat(cur); });
-$('reload').onclick = locate;
-$('gear').onclick = openDlg;
-$('drawBtn').onclick = draw;
-$('drawAgain').onclick = draw;
-$('drawClose').onclick = () => $('drawDlg').close();
-$('dlgClose').onclick = () => $('dlg').close();
-$('dlgSave').onclick = () => { apiKey = $('key').value.trim(); store.set('gkey', apiKey || null); $('dlg').close(); res = {}; render(); fetchCat(cur); };
-$('only4').onchange = () => { store.set('only4', $('only4').checked ? '1' : '0'); render(); };
-$('radius').onchange = () => { store.set('rad', $('radius').value); res = {}; render(); here ? fetchCat(cur) : locate(); };
-render(); locate();
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+  cat = b.dataset.k; render(); $('list').scrollTop = 0;
+});
+$('radius').onchange = render;
+$('reload').onclick = () => start(false);
+$('draw').onclick = drawOne;
+$('dlg').addEventListener('click', e => { if (e.target.id === 'dlg') dlg.close(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+start(false);
 </script>
 </body>
 </html>
