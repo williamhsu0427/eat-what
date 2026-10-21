@@ -221,7 +221,7 @@ const store = {
 };
 let here = null, cat = store.get('cat') || 'all', nearby = [], approx = false, loading = true, failed = false, runId = 0;
 let view = 'list', onlyOpen = false, query = '', favTab = 'want';
-let hideOld = !!store.get('hideOld');
+let hideOld = store.get('hideOld2') ?? true;  // 預設就藏起多年沒人更新的店，比較不會抽到倒掉的
 let gone = store.get('gone') || {};   // 你按過「這家倒了」的店：id -> 店家資料
 // 超過這麼多年沒人更新的店，算「舊資料」
 const OLD_YEARS = 5, THIS_YEAR = new Date().getFullYear();
@@ -721,7 +721,7 @@ let qt;
 $('q').oninput = e => { clearTimeout(qt); $('qx').hidden = !e.target.value; qt = setTimeout(() => { query = e.target.value.trim(); render(); }, 200); };
 $('qx').onclick = () => { $('q').value = ''; $('qx').hidden = true; query = ''; render(); };
 $('hideOld').classList.toggle('on', hideOld);
-$('hideOld').onclick = () => { hideOld = !hideOld; store.set('hideOld', hideOld); $('hideOld').classList.toggle('on', hideOld); render(); };
+$('hideOld').onclick = () => { hideOld = !hideOld; store.set('hideOld2', hideOld); $('hideOld').classList.toggle('on', hideOld); render(); };
 $('openNow').onclick = () => { onlyOpen = !onlyOpen; $('openNow').classList.toggle('on', onlyOpen); render(); };
 $('radius').onchange = render;
 $('reload').onclick = () => start(false);
