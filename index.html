@@ -356,7 +356,7 @@ function fromRow(r, v) {
   const t = {name:n, cuisine:cu};
   if (veg) t['diet:vegetarian'] = 'yes';
   const k = classify(t, am, mall);
-  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, mall, am, yr:v >= 2 ? yr : 0} : null;
+  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, mall:mall === n ? '' : mall, am, yr:v >= 2 ? yr : 0} : null;
 }
 function bbox(p, R) {
   const dLat = R / 111320, dLon = R / (111320 * Math.cos(p.lat * Math.PI / 180));
