@@ -181,9 +181,12 @@ const CATS = [
   {k:'cf', name:'咖啡', e:'☕', c:/coffee/, n:/咖啡|cafe|café|coffee|珈琲|starbucks|星巴克|路易莎|cama/i, x:/茶|飲料|tea/i},
   {k:'veg', name:'素食', e:'🥗', c:/vegetarian|vegan/, n:/素食|蔬食|素|vegan/i},
   {k:'mall', name:'百貨美食街', e:'🏬', c:/(?!)/, n:/美食街|美食廣場|food ?court|美食館/i},
+  {k:'nm', name:'夜市', e:'🏮', c:/(?!)/, n:/夜市|night ?market/i},
 ];
 // 地圖圖釘顏色，每種料理一個顏色
-const PIN = {cn:'#c62828', sn:'#ef6c00', hp:'#d84315', jp:'#1565c0', rm:'#4527a0', kr:'#ad1457', it:'#2e7d32', th:'#6a1b9a', us:'#5d4037', br:'#f9a825', ds:'#ec407a', cf:'#795548', veg:'#558b2f', mall:'#00838f'};
+const PIN = {cn:'#c62828', sn:'#ef6c00', hp:'#d84315', jp:'#1565c0', rm:'#4527a0', kr:'#ad1457', it:'#2e7d32', th:'#6a1b9a', us:'#5d4037', br:'#f9a825', ds:'#ec407a', cf:'#795548', veg:'#558b2f', mall:'#00838f', nm:'#ff6f00'};
+const NIGHT = /夜市|night ?market/i;
+const mallIcon = m => NIGHT.test(m || '') ? '🏮' : '🏬';
 const CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
 
 // 網友推薦名單：景平站一帶，整理自食記與美食平台（座標為約略位置，導航用店名＋地址）
@@ -243,6 +246,9 @@ function classify(t, amenity, mall) {
     if (C.c.test(c) || byName) ks.push(C.k);
   }
   if (amenity === 'ice_cream' && !ks.includes('ds')) ks.push('ds');
+  // 夜市本身，或開在夜市裡的攤位
+  if (amenity === 'marketplace') return ['nm'];
+  if (mall && NIGHT.test(mall)) { ks.includes('nm') || ks.push('nm'); mall = ''; }
   // 開在百貨、大賣場裡的店，或本身就是美食街
   if ((mall || amenity === 'food_court' && !/學生|學餐|宿舍|舍|員工|大學|高中|國中|國小|女[一二三四五六七八九十]|男[一二三四五六七八九十]/.test(n)) && !ks.includes('mall')) ks.push('mall');
   // 店名看不出料理種類的餐廳，至少放進「全部」；咖啡店那類看不出來的多半是飲料店，就不收
@@ -261,7 +267,7 @@ function estPrice(s) {
   if (PRICEY.test(n)) return 3;
   if (CHEAP.test(n)) return 1;
   if (/fast_food|food_court|ice_cream/.test(s.am || '')) return 1;
-  if (k.some(x => ['sn', 'br', 'cf', 'ds'].includes(x))) return 1;
+  if (k.some(x => ['sn', 'br', 'cf', 'ds', 'nm'].includes(x))) return 1;
   if (k.includes('cn') && /麵|飯|餃|粥|包/.test(n) && !/熱炒|快炒|餐廳|酒|宴/.test(n)) return 1;
   return 2;
 }
@@ -434,7 +440,7 @@ function card(s, pick) {
     <div class="info">
       <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
       <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}${priceTag(s)}<span>${esc(tags)}</span>${isOld(s) ? `<span class="old">資料 ${s.yr}</span>` : ''}</div>
-      <div class="line3">${esc(pick ? s.d : s.mall ? '🏬 ' + s.mall : (s.a || ''))}</div>
+      <div class="line3">${esc(pick ? s.d : s.mall ? mallIcon(s.mall) + ' ' + s.mall : (s.a || ''))}</div>
     </div>
     <button class="heart" data-heart="${esc(s.id)}" aria-label="收藏">${f?.st ? '❤️' : '🤍'}</button>
   </div>`;
@@ -510,7 +516,7 @@ function drawPins() {
   const add = (s, star) => {
     const C = CAT[s.k[0]];
     L.marker([s.lat, s.lon], {icon:L.divIcon({className:'', html:`<div class="pin${star ? ' star' : ''}" style="--c:${star ? '#e65100' : PIN[s.k[0]] || '#546e7a'}"><b><i>${star ? '⭐' : C?.e || '🍽️'}</i></b></div>`, iconSize:[34, 44], iconAnchor:[17, 44], popupAnchor:[0, -40]}), zIndexOffset:star ? 1000 : 0})
-      .bindPopup(`<b>${esc(s.n)}</b><br>${s.mall ? '🏬 ' + esc(s.mall) + '<br>' : ''}${fmt(s.m)} ${openHtml(s)}<br><button data-open="${esc(s.id)}">看店家</button>`).addTo(layer);
+      .bindPopup(`<b>${esc(s.n)}</b><br>${s.mall ? mallIcon(s.mall) + ' ' + esc(s.mall) + '<br>' : ''}${fmt(s.m)} ${openHtml(s)}<br><button data-open="${esc(s.id)}">看店家</button>`).addTo(layer);
   };
   inView.slice(0, MAP_MAX).forEach(s => add(s, false));
   picks.forEach(s => add(s, true));
@@ -565,7 +571,7 @@ function openShop(id) {
       <div><i>🏷️</i><span>${esc(tags)}</span></div>
       <div><i>💰</i><span>約 ${PRICES[priceOf(s)]}${favs[id]?.p ? '（你設定的）' : s.p ? '' : '（估計，不準可在下面改）'}</span></div>
       <div><i>🕒</i><span>${oh}</span></div>
-      ${s.mall ? `<div><i>🏬</i><span>在「${esc(s.mall)}」裡面</span></div>` : ''}
+      ${s.mall ? `<div><i>${mallIcon(s.mall)}</i><span>在「${esc(s.mall)}」裡面</span></div>` : ''}
       <div><i>📍</i><span>${esc(s.a || (s.mall ? '地址未登記，導航會帶你到店的位置' : '地址未登記'))}</span></div>
       ${s.yr ? `<div><i>🗓️</i><span${isOld(s) ? ' class="old"' : ''}>地圖資料最後更新：${s.yr} 年${isOld(s) ? '（很久沒人更新，可能已經倒了）' : ''}</span></div>` : ''}
       ${s.tel ? `<div><i>📞</i><a href="tel:${esc(s.tel.replace(/\s/g, ''))}">${esc(s.tel)}</a></div>` : ''}
@@ -681,7 +687,7 @@ function drawOne() {
     if (++i < 14) setTimeout(tick, 40 + i * 12);
     else {
       res.className = '';
-      res.innerHTML += `<div class="meta">${s.d ? '⭐ 網友推薦：' + esc(s.d) : s.mall ? '🏬 ' + esc(s.mall) : esc(s.a || '')}</div>
+      res.innerHTML += `<div class="meta">${s.d ? '⭐ 網友推薦：' + esc(s.d) : s.mall ? mallIcon(s.mall) + ' ' + esc(s.mall) : esc(s.a || '')}</div>
         <div class="row"><button id="again">再抽一次</button><a href="${navUrl(s)}" target="_blank" rel="noopener">🧭 出發</a></div>
         <div class="row" style="margin-top:8px"><button id="detail">看店家</button></div>`;
       bind();

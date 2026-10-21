@@ -10,6 +10,8 @@ MALL_SHOP = {'mall', 'department_store'}
 # 大賣場在地圖上常標成超市或量販，用店名認
 BIG_STORE = re.compile(r'家樂福|大潤發|愛買|好市多|costco|ikea|宜家|大全聯|lopia|carrefour', re.I)
 GRID = 0.01   # 百貨範圍的索引格子大小（約 1 公里）
+NIGHT = re.compile(r'夜市|night ?market', re.I)
+NEAR_M = 150  # 夜市只登記成一個點時，周圍幾公尺內的攤位算在夜市裡
 
 
 def is_mall(t):
@@ -25,11 +27,18 @@ class H(osmium.SimpleHandler):
     def __init__(self):
         super().__init__()
         self.shops = []
-        self.malls = []   # (名稱, [外框座標...], (minlat, minlon, maxlat, maxlon))
+        self.malls = []   # (名稱, [外框座標...], (minlat, minlon, maxlat, maxlon))；夜市的範圍也放這裡
+        self.night_pts = []   # 只登記成一個點的夜市
 
     def add(self, kind, oid, t, lat, lon, year):
         name = t.get('name')
-        if not name or t.get('amenity') not in AMENITY:
+        if not name:
+            return
+        # 夜市本身也收（地圖上標成市集）
+        if t.get('amenity') == 'marketplace' and NIGHT.search(name):
+            if kind == 'n':
+                self.night_pts.append((name, lat, lon))
+        elif t.get('amenity') not in AMENITY:
             return
         # 已標示結束營業的不收
         if t.get('end_date') or t.get('opening_hours', '').strip().lower() in ('closed', 'off'):
@@ -56,7 +65,7 @@ class H(osmium.SimpleHandler):
 
     def area(self, a):
         t = dict(a.tags)
-        if not t.get('name') or not is_mall(t):
+        if not t.get('name') or not (is_mall(t) or (t.get('amenity') == 'marketplace' and NIGHT.search(t['name']))):
             return
         try:
             for ring in a.outer_rings():
@@ -91,6 +100,12 @@ for m in h.malls:
         for x in range(math.floor(w / GRID), math.floor(e / GRID) + 1):
             grid[(y, x)].append(m)
 
+night_grid = collections.defaultdict(list)
+for nm in h.night_pts:
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            night_grid[(math.floor(nm[1] / GRID) + dy, math.floor(nm[2] / GRID) + dx)].append(nm)
+
 tiles = collections.defaultdict(list)
 in_mall = 0
 for sh in h.shops:
@@ -100,6 +115,11 @@ for sh in h.shops:
         if s <= lat <= n and w <= lon <= e and inside(lat, lon, pts):
             mall = name
             break
+    if not mall and t['amenity'] != 'marketplace':
+        for name, mlat, mlon in night_grid.get((math.floor(lat / GRID), math.floor(lon / GRID)), []):
+            if math.hypot((lat - mlat) * 111320, (lon - mlon) * 111320 * math.cos(math.radians(lat))) <= NEAR_M:
+                mall = name
+                break
     if mall:
         in_mall += 1
     # v3：第 5 欄是資料最後更新年份，第 6 欄是所在的百貨／大賣場
@@ -119,4 +139,4 @@ for key, rows in tiles.items():
         json.dump(rows, fp, ensure_ascii=False, separators=(',', ':'))
 with open(os.path.join(OUT, 'index.json'), 'w', encoding='utf-8') as fp:
     json.dump({'v': 3, 'updated': datetime.date.today().isoformat(), 'count': len(h.shops), 'tiles': sorted(tiles)}, fp, separators=(',', ':'))
-print('shops', len(h.shops), 'malls', len(h.malls), 'in malls', in_mall, 'tiles', len(tiles))
+print('shops', len(h.shops), 'malls', len(h.malls), 'night markets (points)', len(h.night_pts), 'in malls', in_mall, 'tiles', len(tiles))
