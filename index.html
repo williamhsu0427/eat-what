@@ -8,62 +8,112 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="leaflet.css">
 <style>
-:root{--bg:#f6f4f1;--card:#fff;--text:#22201d;--sub:#6b655e;--line:#e7e2db;--main:#e65100;--cn:#c62828;--it:#2e7d32;--th:#6a1b9a;--pick:#fff3e0;--pickt:#b34700}
-@media (prefers-color-scheme:dark){:root{--bg:#141210;--card:#1f1c19;--text:#eeeae5;--sub:#a59d94;--line:#332e29;--main:#ff8a3d;--cn:#ef6a6a;--it:#5cbf63;--th:#c38be0;--pick:#3a2a1a;--pickt:#ffb27a}}
+:root{--bg:#f4f2ef;--card:#fff;--text:#22201d;--sub:#6b655e;--line:#e7e2db;--main:#e65100;--soft:#fff3e0;--softt:#b34700;--ok:#2e7d32;--no:#c62828}
+@media (prefers-color-scheme:dark){:root{--bg:#141210;--card:#1f1c19;--text:#eeeae5;--sub:#a59d94;--line:#332e29;--main:#ff8a3d;--soft:#3a2a1a;--softt:#ffb27a;--ok:#66bb6a;--no:#ef6a6a}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;-webkit-tap-highlight-color:transparent}
 body{display:flex;flex-direction:column}
-header{display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));background:#e65100;color:#fff}
+button{font-family:inherit}
+header{background:#e65100;color:#fff;padding:10px 12px 10px;padding-top:calc(10px + env(safe-area-inset-top))}
+.hrow{display:flex;align-items:center;gap:8px}
 header h1{font-size:18px;margin:0;flex:1}
-header button{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:10px;padding:8px 12px;font-size:15px}
-.tabs{display:flex;gap:6px;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:12px;padding:8px 14px;font-size:15px;font-weight:600}
-.tab small{display:block;font-size:12px;font-weight:400;color:var(--sub)}
-.tab.on{color:#fff;border-color:transparent;background:var(--c)}
-.tab.on small{color:rgba(255,255,255,.85)}
-.bar{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:13px;color:var(--sub)}
-.bar span{flex:1;min-width:0}
-.bar select{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:5px 8px;font-size:13px}
-#status.err{color:var(--cn)}
-.draw{display:block;width:calc(100% - 24px);margin:2px 12px 0;border:0;border-radius:12px;padding:12px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(90deg,#e65100,#f9a825)}
-#list{flex:1;overflow:auto;padding:0 12px calc(16px + env(safe-area-inset-bottom))}
+header .loc{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:10px;padding:7px 11px;font-size:14px}
+.search{display:flex;align-items:center;gap:6px;background:#fff;border-radius:12px;padding:0 10px;margin-top:9px}
+.search input{flex:1;border:0;outline:0;font-size:15px;padding:10px 0;background:transparent;color:#22201d;min-width:0}
+.search button{border:0;background:none;color:#999;font-size:18px;padding:0 2px}
+.chips{display:flex;gap:6px;padding:9px 12px;background:var(--card);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.chip small{color:var(--sub);margin-left:3px}
+.chip.on{background:var(--main);border-color:var(--main);color:#fff}
+.chip.on small{color:rgba(255,255,255,.85)}
+.bar{display:flex;align-items:center;gap:6px;padding:7px 12px;font-size:13px;color:var(--sub);background:var(--card);border-bottom:1px solid var(--line)}
+.bar #status{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#status.err{color:var(--no)}
+.tg{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:5px 10px;font-size:13px;white-space:nowrap}
+.tg.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.bar select{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:5px 6px;font-size:13px}
+main{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;overflow:auto;padding:0 12px 16px;display:none}
+.view.on{display:block}
+#v-map{padding:0}
+#map{position:absolute;inset:0}
+.draw{display:block;width:100%;margin:10px 0 0;border:0;border-radius:12px;padding:11px;font-size:15px;font-weight:700;color:#fff;background:linear-gradient(90deg,#e65100,#f9a825)}
 .sec{font-size:13px;color:var(--sub);margin:16px 2px 0;font-weight:600}
 .sec small{font-weight:400}
-.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:8px}
+.item{display:flex;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:8px;cursor:pointer}
 .item.pick{border-color:var(--main)}
-.top{display:flex;align-items:baseline;gap:8px}
+.thumb{flex:0 0 64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:30px;background:var(--soft)}
+.info{flex:1;min-width:0}
+.top{display:flex;align-items:baseline;gap:6px}
 .top b{flex:1;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dist{font-size:13px;color:var(--sub);white-space:nowrap}
-.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:2px 7px;background:var(--pick);color:var(--pickt);margin-right:4px}
-.meta{font-size:13px;color:var(--sub);margin-top:4px;line-height:1.5}
-.meta a{color:var(--main)}
-.btns{display:flex;gap:6px;margin-top:10px}
-.btns a{flex:1;white-space:nowrap;text-align:center;text-decoration:none;font-size:14px;border-radius:10px;padding:9px 2px;border:1px solid var(--line);color:var(--text);background:var(--bg)}
-.btns a.nav{background:var(--main);border-color:var(--main);color:#fff;font-weight:600;flex:1.3}
+.dist{font-size:12px;color:var(--sub);white-space:nowrap}
+.line2{font-size:13px;color:var(--sub);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.line3{font-size:13px;color:var(--sub);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--soft);color:var(--softt)}
+.open{color:var(--ok);font-weight:600}.closed{color:var(--no);font-weight:600}
+.mine{color:#f9a825;font-weight:700}
+.heart{flex:0 0 auto;border:0;background:none;font-size:22px;padding:0 2px;align-self:center;color:var(--sub)}
 .empty{text-align:center;color:var(--sub);padding:28px 16px;line-height:1.7;font-size:14px}
 .empty button{border:0;background:var(--main);color:#fff;border-radius:8px;padding:7px 12px;font-size:14px;margin-top:6px}
-dialog{border:0;border-radius:16px;padding:18px;max-width:420px;width:calc(100% - 32px);background:var(--card);color:var(--text)}
+.seg{display:flex;gap:6px;margin-top:12px}
+.seg button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:8px;font-size:14px}
+.seg button.on{background:var(--main);border-color:var(--main);color:#fff}
+nav{display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--sub);padding:8px 0 7px;font-size:12px}
+nav button span{display:block;font-size:20px;line-height:1.2}
+nav button.on{color:var(--main);font-weight:700}
+dialog{border:0;padding:0;background:var(--card);color:var(--text)}
 dialog::backdrop{background:rgba(0,0,0,.45)}
-#res .cat{display:inline-block;color:#fff;border-radius:8px;padding:2px 10px;font-size:14px;font-weight:600}
+#sheet{margin:auto auto 0;width:100%;max-width:560px;max-height:88vh;border-radius:18px 18px 0 0;overflow:auto}
+#sheet .sb{padding:16px 16px calc(18px + env(safe-area-inset-bottom))}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 12px}
+.sh-top{display:flex;gap:12px;align-items:center}
+.sh-top .thumb{flex-basis:56px;height:56px;font-size:28px}
+.sh-top h2{font-size:20px;margin:0;line-height:1.3}
+.sh-x{margin-left:auto;align-self:flex-start;border:0;background:var(--bg);color:var(--text);border-radius:50%;width:32px;height:32px;font-size:16px}
+.rows{margin-top:12px;font-size:14px;line-height:1.6}
+.rows div{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.rows div i{font-style:normal;flex:0 0 22px;text-align:center}
+.rows a{color:var(--main)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.grid a,.grid button{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:12px;padding:10px 4px;font-size:13px}
+.grid a span,.grid button span{font-size:20px}
+.grid .nav{background:var(--main);border-color:var(--main);color:#fff;font-weight:700}
+.my{margin-top:16px;padding:12px;border-radius:12px;background:var(--bg)}
+.my h3{margin:0 0 8px;font-size:15px}
+.stars{display:flex;gap:4px}
+.stars button{border:0;background:none;font-size:28px;padding:0;color:var(--line)}
+.stars button.on{color:#f9a825}
+.my textarea{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--text);min-height:60px}
+#draw-dlg{border-radius:16px;padding:18px;max-width:420px;width:calc(100% - 32px)}
+#res .cat{display:inline-block;color:#fff;background:var(--main);border-radius:8px;padding:2px 10px;font-size:14px;font-weight:600}
 #res .nm{font-size:22px;font-weight:800;margin:10px 0 4px;line-height:1.3}
 #res.spin .nm{opacity:.5}
+#res .meta{font-size:14px;color:var(--sub)}
 #res .row{display:flex;gap:8px;margin-top:14px}
 #res .row button,#res .row a{flex:1;text-align:center;text-decoration:none;border:0;border-radius:12px;padding:13px 6px;font-size:16px;font-weight:700}
 #res .row button{background:var(--bg);color:var(--text)}
 #res .row a{background:var(--main);color:#fff}
+.pin{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pin.star{border-color:#e65100;background:#fff3e0;width:30px;height:30px}
+.me{width:16px;height:16px;border-radius:50%;background:#1e88e5;border:3px solid #fff;box-shadow:0 0 0 2px rgba(30,136,229,.4)}
+.leaflet-popup-content{font-size:14px;margin:10px 12px}
+.leaflet-popup-content button{margin-top:6px;border:0;background:#e65100;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
 footer{font-size:11px;color:var(--sub);text-align:center;padding:14px 0 4px;line-height:1.6}
 </style>
 </head>
 <body>
 <header>
-  <h1>🍜 等一下吃什麼</h1>
-  <button id="reload">重新定位</button>
+  <div class="hrow"><h1>🍜 等一下吃什麼</h1><button class="loc" id="reload">📍 重新定位</button></div>
+  <div class="search"><span>🔍</span><input id="q" type="search" placeholder="搜尋店名或菜色，例如牛肉麵" autocomplete="off"><button id="qx" hidden>✕</button></div>
 </header>
-<div class="tabs" id="tabs"></div>
+<div class="chips" id="chips"></div>
 <div class="bar">
   <span id="status">定位中…</span>
+  <button class="tg" id="openNow">營業中</button>
   <select id="radius">
     <option value="1000">1 公里</option>
     <option value="2000">2 公里</option>
@@ -71,24 +121,39 @@ footer{font-size:11px;color:var(--sub);text-align:center;padding:14px 0 4px;line
     <option value="5000" selected>5 公里</option>
   </select>
 </div>
-<button class="draw" id="draw">🎲 幫我抽一家</button>
-<div id="list"></div>
+<main>
+  <div class="view on" id="v-list"></div>
+  <div class="view" id="v-map"><div id="map"></div></div>
+  <div class="view" id="v-fav"></div>
+</main>
+<nav>
+  <button class="on" data-v="list"><span>🍽️</span>附近</button>
+  <button data-v="map"><span>🗺️</span>地圖</button>
+  <button data-v="fav"><span>❤️</span>收藏</button>
+</nav>
 
-<dialog id="dlg"><div id="res"></div></dialog>
+<dialog id="sheet"></dialog>
+<dialog id="draw-dlg"><div id="res"></div></dialog>
 
+<script src="leaflet.js"></script>
 <script>
-// 料理種類：c 是地圖上的料理標籤，n 是店名關鍵字，x 是要排除的店名
+// 餐種：c 是地圖上的料理標籤，n 是店名關鍵字，x 是要排除的店名；一家店可以同時屬於好幾類
 const CATS = [
-  {k:'cn', name:'中式台菜', color:'#c62828', c:/chinese|taiwanese|cantonese|sichuan|hunan|shanghai|beijing|noodle|dumpling|congee|dim_sum|xiaolongbao|hong_kong|teochew|hakka|beef_noodle/,
-   n:/麵|麪|飯|熱炒|快炒|小館|餃|包子|小籠|湯包|粥|川菜|川味|粵|港式|燒臘|台菜|便當|點心|酸菜魚|滷|羹|焿|小吃|食堂|豆漿|炒|飯館|魯肉|肉圓|鹽酥雞/,
-   x:/拉麵|烏龍|日式|韓|丼|壽司|義|泰|越|印度|咖哩|漢堡|pasta|ramen|居酒屋|燒肉|定食|早午餐|brunch|麥當勞|肯德基|摩斯|subway|鍋/i},
-  {k:'hp', name:'火鍋', color:'#d84315', c:/hot_?pot|shabu/, n:/火鍋|涮涮|鍋物|麻辣鍋|薑母鴨|羊肉爐|石頭火鍋|壽喜燒|嘀兜雞|豬肚雞|煲/},
-  {k:'jp', name:'日式', color:'#1565c0', c:/japanese|ramen|sushi|udon|soba|tonkatsu|yakitori|izakaya|donburi/, n:/拉麵|壽司|丼|日式|日本料理|居酒屋|定食|烏龍|燒肉|串燒|炸豬排|咖哩|蕎麥/, x:/韓/},
-  {k:'kr', name:'韓式', color:'#ad1457', c:/korean/, n:/韓|首爾|釜山|部隊鍋|拌飯|石鍋/},
-  {k:'it', name:'義式', color:'#2e7d32', c:/italian|pizza|pasta/, n:/義大利|義式|意大利|pasta|pizza|披薩|比薩|trattoria|osteria|pizzeria/i},
-  {k:'th', name:'泰式南洋', color:'#6a1b9a', c:/thai|vietnamese|indonesian|malaysian|burmese|singaporean|asian/, n:/泰式|泰國|泰菜|泰緬|thai|曼谷|打拋|月亮蝦餅|^泰|越南|河粉|南洋|印尼|緬甸|星馬|雲南|叻沙/i},
-  {k:'us', name:'美式漢堡', color:'#5d4037', c:/american|burger|steak|fried_chicken|diner|brunch/, n:/漢堡|牛排|炸雞|美式|burger|早午餐|brunch|steak/i},
-  {k:'veg', name:'素食', color:'#558b2f', c:/vegetarian|vegan/, n:/素食|蔬食|素|vegan/i},
+  {k:'cn', name:'中式台菜', e:'🥢', c:/chinese|taiwanese|cantonese|sichuan|hunan|shanghai|beijing|noodle|dumpling|congee|dim_sum|xiaolongbao|hong_kong|teochew|hakka|beef_noodle/, nameOnlyIfNoTag:true,
+   n:/麵|麪|飯|熱炒|快炒|小館|餃|包子|小籠|湯包|粥|川菜|川味|粵|港式|燒臘|台菜|便當|點心|酸菜魚|滷|羹|焿|食堂|炒|飯館|魯肉/,
+   x:/拉麵|烏龍|日式|韓|丼|壽司|義|泰式|泰國|越南|印度|咖哩|漢堡|pasta|ramen|居酒屋|燒肉|定食|早午餐|brunch|麥當勞|肯德基|摩斯|subway|鍋|咖啡|cafe|茶|飲/i},
+  {k:'sn', name:'小吃', e:'🍢', c:/street_food|snack/, n:/小吃|滷肉飯|魯肉飯|肉圓|蚵仔|麵線|臭豆腐|鹽酥雞|雞排|米糕|碗粿|肉羹|肉焿|擔仔|刈包|潤餅|胡椒餅|蔥油餅|水煎包|鍋貼|滷味|夜市|豆漿|飯糰|蛋餅|燒餅/, x:/咖啡|cafe/i},
+  {k:'hp', name:'火鍋', e:'🍲', c:/hot_?pot|shabu/, n:/火鍋|涮涮|鍋物|麻辣鍋|薑母鴨|羊肉爐|石頭火鍋|壽喜燒|嘀兜雞|豬肚雞|煲/},
+  {k:'jp', name:'日式', e:'🍣', c:/japanese|ramen|sushi|udon|soba|tonkatsu|yakitori|izakaya|donburi/, n:/拉麵|壽司|丼|日式|日本料理|居酒屋|定食|烏龍|燒肉|串燒|炸豬排|咖哩|蕎麥|食堂.*日/, x:/韓|咖啡/},
+  {k:'rm', name:'拉麵', e:'🍜', c:/ramen/, n:/拉麵|ramen|らーめん|沾麵|つけ麺/i},
+  {k:'kr', name:'韓式', e:'🥘', c:/korean/, n:/韓|首爾|釜山|部隊鍋|拌飯|石鍋/},
+  {k:'it', name:'義式', e:'🍝', c:/italian|pizza|pasta/, n:/義大利|義式|意大利|pasta|pizza|披薩|比薩|trattoria|osteria|pizzeria/i},
+  {k:'th', name:'泰式南洋', e:'🌶️', c:/thai|vietnamese|indonesian|malaysian|burmese|singaporean/, n:/泰式|泰國|泰菜|泰緬|thai|曼谷|打拋|月亮蝦餅|^泰|越南|河粉|南洋|印尼|緬甸|星馬|雲南|叻沙/i},
+  {k:'us', name:'美式漢堡', e:'🍔', c:/american|burger|steak|fried_chicken|diner/, n:/漢堡|牛排|炸雞|美式|burger|steak/i},
+  {k:'br', name:'早午餐', e:'🥞', c:/breakfast|brunch/, n:/早午餐|brunch|早餐|晨間|美而美|拉亞|麥味登|弘爺|q burger/i},
+  {k:'ds', name:'甜點', e:'🍰', c:/dessert|cake|ice_cream|pastry|crepe|waffle|frozen_yogurt|donut|shaved_ice/, n:/甜點|蛋糕|甜品|豆花|剉冰|刨冰|冰品|鬆餅|可麗餅|布丁|dessert|cake|gelato|冰淇淋/i},
+  {k:'cf', name:'咖啡', e:'☕', c:/coffee/, n:/咖啡|cafe|café|coffee|珈琲|starbucks|星巴克|路易莎|cama/i, x:/茶|飲料|tea/i},
+  {k:'veg', name:'素食', e:'🥗', c:/vegetarian|vegan/, n:/素食|蔬食|素|vegan/i},
 ];
 const CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
 
@@ -98,11 +163,11 @@ const PICKS = [
   {k:['cn'], n:'麵麵軒', a:'新北市中和區景平路240巷2弄17號', lat:24.9936, lon:121.5158, d:'重慶小麵、酸辣粉、鮮蝦餛飩麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
   {k:['hp'], n:'景平洞天 粵式煲湯獨享鍋', a:'新北市中和區景平路240巷2弄3號', lat:24.9934, lon:121.5157, d:'個人煲湯鍋＋自助吧，魚滿鍋', src:'https://mibaoma.tw/dongtianhotpot/'},
   {k:['cn'], n:'港都熱炒', a:'新北市中和區大勇街12號', lat:24.9932, lon:121.5168, d:'粵菜大廚熱炒，開到深夜，宵夜好去處', src:'https://eggie.tw/blog/post/228321956'},
-  {k:['cn'], n:'永芳陳家祖傳美食', a:'新北市中和區大勇街25巷2號', lat:24.9936, lon:121.5163, d:'在地老字號小吃', src:'https://ifoodie.tw/explore/%E6%96%B0%E5%8C%97%E5%B8%82/list/%E6%99%AF%E5%B9%B3%E8%B7%AF%E7%BE%8E%E9%A3%9F'},
-  {k:['jp'], n:'藏味拉麵', a:'新北市中和區景安路132巷1號', lat:24.9942, lon:121.5044, d:'濃厚豚骨叉燒拉麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['cn', 'sn'], n:'永芳陳家祖傳美食', a:'新北市中和區大勇街25巷2號', lat:24.9936, lon:121.5163, d:'在地老字號小吃', src:'https://ifoodie.tw/explore/%E6%96%B0%E5%8C%97%E5%B8%82/list/%E6%99%AF%E5%B9%B3%E8%B7%AF%E7%BE%8E%E9%A3%9F'},
+  {k:['jp', 'rm'], n:'藏味拉麵', a:'新北市中和區景安路132巷1號', lat:24.9942, lon:121.5044, d:'濃厚豚骨叉燒拉麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
   {k:['jp'], n:'醇串食代', a:'新北市中和區景平路311號', lat:24.9927, lon:121.5126, d:'懷舊復古串燒居酒屋，要先訂位', src:'https://tenjo.tw/chunchuan/'},
-  {k:['jp'], n:'私藏不藏私', a:'新北市中和區景安路167巷6號', lat:24.9947, lon:121.5061, d:'日式咖哩輕食，唐揚菠菜乾咖哩', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
-  {k:['us'], n:'B.burger 嗶嗶漢堡', a:'新北市中和區景平路240巷2弄19號', lat:24.9936, lon:121.5159, d:'明太子蝦排蛋堡，乾燥花牆好拍', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['jp', 'ds'], n:'私藏不藏私', a:'新北市中和區景安路167巷6號', lat:24.9947, lon:121.5061, d:'日式咖哩輕食和甜點，唐揚菠菜乾咖哩', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['us', 'br'], n:'B.burger 嗶嗶漢堡', a:'新北市中和區景平路240巷2弄19號', lat:24.9936, lon:121.5159, d:'明太子蝦排蛋堡，乾燥花牆好拍', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
   {k:['it'], n:'尼西義大利麵', a:'新北市中和區景平路240巷2弄13號', lat:24.9935, lon:121.5157, d:'百元手工醬料義大利麵，CP 值高', src:'https://mibaoma.tw/nissipasta_juliano2005/'},
   {k:['it'], n:'水牛哥義式坊', a:'新北市中和區景平路240巷1弄2號', lat:24.9930, lon:121.5155, d:'照燒章魚披薩、清炒蒜香海鮮麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
   {k:['it'], n:'傑米義式小坊', a:'新北市中和區大勇街27巷2號', lat:24.9938, lon:121.5165, d:'墨魚起司海鮮義大利麵', src:'https://www.gomaji.com/blog/%E4%B8%AD%E5%92%8C%E7%BE%A9%E5%A4%A7%E5%88%A9%E9%BA%B5/'},
@@ -112,7 +177,7 @@ const PICKS = [
   {k:['th', 'veg'], n:'素速泰 SusuThai', a:'新北市中和區景平路298號', lat:24.9926, lon:121.5132, d:'純素泰式，椰汁紅咖哩飯', src:'https://lololo223344.pixnet.net/blog/post/346504113'},
   {k:['th'], n:'泰糯糯泰式料理', a:'新北市中和區安樂路41號', lat:24.9920, lon:121.5117, d:'青木瓜沙拉、羅望子炒蝦，白飯續到飽', src:'https://may128.com/thai-noir-cuisine/'},
   {k:['th'], n:'雲川泰緬小館', a:'新北市中和區景平路462號', lat:24.9930, lon:121.5065, d:'超厚月亮蝦餅、酸辣海鮮湯', src:'https://ifoodie.tw/post/5e96b07dd6895d7c5ebdcdab'},
-];
+].map(s => ({...s, id:'p:' + s.n}));
 const JINGPING = {lat:24.9920, lon:121.5159};
 // 開放地圖（OpenStreetMap）資料，免金鑰；幾個資料站同時問，誰先回就用誰
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
@@ -122,26 +187,84 @@ const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
-let here = null, cat = store.get('cat') || 'cn', nearby = [], approx = false, loading = true, failed = false, runId = 0;
-if (!CAT[cat]) cat = 'cn';
+let here = null, cat = store.get('cat') || 'all', nearby = [], approx = false, loading = true, failed = false, runId = 0;
+let view = 'list', onlyOpen = false, query = '', favTab = 'want';
+let favs = store.get('favs') || {};   // id -> {s:店家資料, st:'want'|'been'|'', r:0-5, note, t}
+if (cat !== 'all' && !CAT[cat]) cat = 'all';
 
-function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function dist(a, b) {
   const R = 6371000, r = Math.PI / 180;
   const x = Math.sin((b.lat - a.lat) * r / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin((b.lon - a.lon) * r / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 function fmt(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' 公尺' : (m / 1000).toFixed(1) + ' 公里'; }
+function emoji(s) { return CAT[s.k[0]]?.e || '🍽️'; }
 
-// 一家店可以同時屬於好幾類（例如素食泰式）
-function classify(t) {
+function classify(t, amenity) {
   const c = (t.cuisine || '').toLowerCase(), n = t.name || '', ks = [];
   for (const C of CATS) {
-    if (C.x && C.x.test(n)) continue;
-    if (C.c.test(c) || (C.k === 'cn' ? !c && C.n.test(n) : C.n.test(n))) ks.push(C.k);
+    // 店名排除字只擋「看店名猜」的情況，地圖上標好的料理種類照收
+    const byName = (C.nameOnlyIfNoTag ? !c : true) && C.n.test(n) && !(C.x && C.x.test(n));
+    if (C.c.test(c) || byName) ks.push(C.k);
   }
+  if (amenity === 'ice_cream' && !ks.includes('ds')) ks.push('ds');
   if (/yes|only/.test(t['diet:vegetarian'] || '') || /yes|only/.test(t['diet:vegan'] || '')) ks.includes('veg') || ks.push('veg');
   return ks;
+}
+
+// 營業時間：看得懂常見寫法（例如 Mo-Fr 11:00-21:00; Sa,Su off），看不懂就回傳 null
+const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+function parseDays(s) {
+  const out = new Set();
+  for (const part of s.split(',')) {
+    const p = part.trim();
+    if (p === 'PH' || p === 'SH') continue;
+    const m = p.match(/^(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))?$/);
+    if (!m) return null;
+    let a = DAYS.indexOf(m[1]); const b = m[2] ? DAYS.indexOf(m[2]) : a;
+    for (;;) { out.add(a); if (a === b) break; a = (a + 1) % 7; }
+  }
+  return [...out];
+}
+function openState(oh, now = new Date()) {
+  if (!oh) return null;
+  oh = oh.trim();
+  if (oh === '24/7') return true;
+  const day = now.getDay(), yd = (day + 6) % 7, min = now.getHours() * 60 + now.getMinutes();
+  let today, yday;
+  for (const raw of oh.split(';')) {
+    const r = raw.trim();
+    if (!r) continue;
+    const m = r.match(/^((?:Mo|Tu|We|Th|Fr|Sa|Su|PH|SH)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?(?:\s*,\s*(?:Mo|Tu|We|Th|Fr|Sa|Su|PH|SH)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?)*)?\s*(.*)$/);
+    const days = m[1] ? parseDays(m[1].replace(/\s/g, '')) : [0, 1, 2, 3, 4, 5, 6];
+    if (!days) return null;
+    if (!days.length) continue;
+    const rest = m[2].trim();
+    const spans = [];
+    if (!/^(off|closed)$/i.test(rest)) {
+      for (const t of rest.split(',')) {
+        const tm = t.trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\+?$/);
+        if (!tm) return null;
+        const s = +tm[1] * 60 + +tm[2]; let e = +tm[3] * 60 + +tm[4];
+        if (e <= s) e += 1440;
+        spans.push([s, e]);
+      }
+    }
+    if (days.includes(day)) today = spans;
+    if (days.includes(yd)) yday = spans;
+  }
+  return (today || []).some(([s, e]) => min >= s && min < e) || (yday || []).some(([s, e]) => e > 1440 && min + 1440 < e);
+}
+function ohText(oh) {
+  return String(oh).replace(/Mo/g, '一').replace(/Tu/g, '二').replace(/We/g, '三').replace(/Th/g, '四').replace(/Fr/g, '五').replace(/Sa/g, '六').replace(/Su/g, '日')
+    .replace(/PH/g, '國定假日').replace(/\boff\b|\bclosed\b/gi, '公休').replace(/24\/7/, '24 小時').replace(/;\s*/g, '；');
+}
+function openHtml(s) {
+  const o = openState(s.h);
+  if (o === true) return '<span class="open">營業中</span>';
+  if (o === false) return '<span class="closed">休息中</span>';
+  return '';
 }
 
 async function overpass(q) {
@@ -162,20 +285,20 @@ async function overpass(q) {
 async function fetchArea(p, R) {
   const dLat = R / 111320, dLon = R / (111320 * Math.cos(p.lat * Math.PI / 180));
   const bb = [p.lat - dLat, p.lon - dLon, p.lat + dLat, p.lon + dLon].map(x => x.toFixed(5)).join(',');
-  const d = await overpass(`[out:json][timeout:20];nwr["amenity"~"^(restaurant|fast_food|food_court)$"]["name"](${bb});out center tags qt;`);
+  const d = await overpass(`[out:json][timeout:20];nwr["amenity"~"^(restaurant|fast_food|food_court|cafe|ice_cream)$"]["name"](${bb});out center tags qt;`);
   const v = [];
   for (const e of d.elements) {
-    const t = e.tags || {}, k = classify(t);
+    const t = e.tags || {}, k = classify(t, t.amenity);
     const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon;
     if (!k.length || lat == null) continue;
-    const addr = [t['addr:street'], t['addr:housenumber'] && t['addr:housenumber'] + '號'].filter(Boolean).join('');
-    v.push({k, n:t.name, lat, lon, a:addr, h:t.opening_hours || ''});
+    const addr = [t['addr:city'], t['addr:district'], t['addr:street'], t['addr:housenumber'] && t['addr:housenumber'] + '號'].filter(Boolean).join('');
+    v.push({id:'o:' + e.type[0] + e.id, k, n:t.name, lat, lon, a:addr, h:t.opening_hours || '', tel:t.phone || t['contact:phone'] || '', web:t.website || t['contact:website'] || '', cu:t.cuisine || ''});
   }
   return v;
 }
 
 // 快取：同一帶（約 1 公里格）一週內直接秀，超過一天背景再更新
-function cacheKey(p) { return 'near2:' + p.lat.toFixed(2) + ',' + p.lon.toFixed(2); }
+function cacheKey(p) { return 'near3:' + p.lat.toFixed(2) + ',' + p.lon.toFixed(2); }
 async function loadNearby(id) {
   const key = cacheKey(here), c = store.get(key);
   if (c && Date.now() - c.t < 7 * 864e5) {
@@ -205,58 +328,192 @@ async function loadNearby(id) {
   render();
 }
 
+// 外部連結
 function navUrl(s) {
   const dest = s.src ? s.n + ' ' + s.a : s.lat + ',' + s.lon;
-  return 'https://www.google.com/maps/dir/?api=1&travelmode=' + (s.m > 1500 ? 'driving' : 'walking') + '&destination=' + encodeURIComponent(dest);
+  const m = here ? dist(here, s) : 0;
+  return 'https://www.google.com/maps/dir/?api=1&travelmode=' + (m > 1500 ? 'driving' : 'walking') + '&destination=' + encodeURIComponent(dest);
 }
-function threadsUrl(s) { return 'https://www.threads.net/search?q=' + encodeURIComponent(s.n + ' 中和') + '&serp_type=default'; }
+function gmapUrl(s) { return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s.n + ' ' + (s.a || '')); }
+function ifoodieUrl(s) { return 'https://ifoodie.tw/search?q=' + encodeURIComponent(s.n); }
+function threadsUrl(s) { return 'https://www.threads.net/search?q=' + encodeURIComponent(s.n) + '&serp_type=default'; }
 function igUrl(s) { return 'https://www.instagram.com/explore/search/keyword/?q=' + encodeURIComponent(s.n); }
 
-function card(s, pick) {
-  return `<div class="item${pick ? ' pick' : ''}">
-    <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
-    <div class="meta">${pick ? '<span class="badge">網友推薦</span>' + esc(s.d) + '　<a href="' + s.src + '" target="_blank" rel="noopener">看食記</a><br>' : ''}${esc(s.a || '')}${s.h ? '<br>營業：' + esc(s.h) : ''}</div>
-    <div class="btns">
-      <a class="nav" href="${navUrl(s)}" target="_blank" rel="noopener">🧭 導航</a>
-      <a href="${threadsUrl(s)}" target="_blank" rel="noopener">Threads</a>
-      <a href="${igUrl(s)}" target="_blank" rel="noopener">IG</a>
-    </div></div>`;
+// 篩選：餐種、搜尋字、營業中、距離
+function matchQuery(s) {
+  if (!query) return true;
+  const hay = (s.n + ' ' + (s.a || '') + ' ' + (s.d || '') + ' ' + s.k.map(k => CAT[k]?.name).join(' ') + ' ' + (s.cu || '')).toLowerCase();
+  return query.toLowerCase().split(/\s+/).every(w => hay.includes(w));
 }
-
 function pool(k) {
   const R = +$('radius').value;
-  const withD = arr => arr.filter(s => s.k.includes(k)).map(s => ({...s, m:dist(here, s)})).filter(s => s.m <= R).sort((a, b) => a.m - b.m);
-  const picks = withD(PICKS);
+  const ok = s => (k === 'all' || s.k.includes(k)) && matchQuery(s) && (!onlyOpen || openState(s.h) === true);
+  const withD = arr => arr.filter(ok).map(s => ({...s, m:dist(here, s)})).filter(s => s.m <= R).sort((a, b) => a.m - b.m);
+  const picks = onlyOpen ? [] : withD(PICKS);
   const names = new Set(picks.map(p => p.n.slice(0, 3)));
   const near = withD(nearby).filter(s => !names.has(s.n.slice(0, 3)));
   return {picks, near};
 }
 
-function tabs() {
-  $('tabs').innerHTML = CATS.map(C => `<button class="tab${C.k === cat ? ' on' : ''}" data-k="${C.k}" style="--c:${C.color}">${C.name}<small id="n-${C.k}">–</small></button>`).join('');
-  $('tabs').querySelectorAll('.tab').forEach(b => b.onclick = () => {
-    $('tabs').querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
-    cat = b.dataset.k; store.set('cat', cat); render(); $('list').scrollTop = 0;
+function card(s, pick) {
+  const f = favs[s.id];
+  const mine = f?.r ? `<span class="mine">★${f.r}</span>` : '';
+  const tags = s.k.slice(0, 2).map(k => CAT[k]?.name).filter(Boolean).join('・');
+  return `<div class="item${pick ? ' pick' : ''}" data-id="${esc(s.id)}">
+    <div class="thumb">${emoji(s)}</div>
+    <div class="info">
+      <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
+      <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}<span>${esc(tags)}</span></div>
+      <div class="line3">${esc(pick ? s.d : (s.a || ''))}</div>
+    </div>
+    <button class="heart" data-heart="${esc(s.id)}" aria-label="收藏">${f?.st ? '❤️' : '🤍'}</button>
+  </div>`;
+}
+
+// 目前畫面上的店，給店家頁和地圖用
+let shown = new Map();
+function remember(arr) { for (const s of arr) shown.set(s.id, s); return arr; }
+
+function chips() {
+  const list = [{k:'all', name:'全部', e:'🍽️'}].concat(CATS);
+  $('chips').innerHTML = list.map(C => `<button class="chip${C.k === cat ? ' on' : ''}" data-k="${C.k}">${C.e} ${C.name}<small id="n-${C.k}"></small></button>`).join('');
+  $('chips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    $('chips').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
+    cat = b.dataset.k; store.set('cat', cat); render(); $('v-list').scrollTop = 0;
   });
-  $('tabs').querySelector('.on').scrollIntoView({inline:'center', block:'nearest'});
+  $('chips').querySelector('.on').scrollIntoView({inline:'center', block:'nearest'});
 }
 
 function render() {
   if (!here) return;
-  for (const C of CATS) {
+  const waiting = loading && !nearby.length;
+  for (const C of [{k:'all'}].concat(CATS)) {
     const p = pool(C.k);
-    $('n-' + C.k).textContent = loading && !nearby.length ? '找店中…' : (p.picks.length + p.near.length) + ' 家';
+    $('n-' + C.k).textContent = waiting ? '' : ' ' + (p.picks.length + p.near.length);
   }
-  const {picks, near} = pool(cat), name = CAT[cat].name;
-  let h = '';
+  const {picks, near} = pool(cat), name = cat === 'all' ? '' : CAT[cat].name;
+  shown = new Map();
+  remember(picks); remember(near);
+  let h = '<button class="draw" id="draw">🎲 不知道吃什麼？幫我抽一家</button>';
   if (picks.length) h += `<div class="sec">⭐ 網友推薦 <small>景平站一帶</small></div>` + picks.map(s => card(s, true)).join('');
   h += `<div class="sec">📍 附近${name}店家 <small>由近到遠${loading && nearby.length ? '，還在補更遠的店…' : ''}</small></div>`;
-  if (loading && !nearby.length) h += '<div class="empty">正在找附近店家…</div>';
+  if (waiting) h += '<div class="empty">正在找附近店家…</div>';
   else if (failed) h += '<div class="empty">附近店家暫時抓不到（地圖資料站忙線）。<br><button onclick="start(true)">再試一次</button></div>';
-  else if (!near.length) h += `<div class="empty">這個範圍內沒找到${name}店家，試試別的種類或把範圍調大。</div>`;
-  else h += near.slice(0, 80).map(s => card(s, false)).join('');
+  else if (!near.length) h += `<div class="empty">找不到符合的店家${onlyOpen ? '（只看營業中：很多小店沒登記營業時間）' : ''}，試試別的餐種、關鍵字或把範圍調大。</div>`;
+  else h += near.slice(0, 100).map(s => card(s, false)).join('') + (near.length > 100 ? `<div class="empty">還有 ${near.length - 100} 家，用搜尋或縮小範圍找更快</div>` : '');
   h += '<footer>附近店家來自 OpenStreetMap 開放地圖，免金鑰<br>網友推薦整理自食記與美食平台，出發前建議先確認營業時間</footer>';
-  $('list').innerHTML = h;
+  $('v-list').innerHTML = h;
+  $('draw').onclick = drawOne;
+  if (view === 'map') drawMap();
+  if (view === 'fav') renderFav();
+}
+
+// 地圖模式
+let map, layer, meMarker;
+function drawMap() {
+  if (!here) return;
+  if (!map) {
+    map = L.map('map', {zoomControl:false}).setView([here.lat, here.lon], 16);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+    layer = L.layerGroup().addTo(map);
+    map.on('popupopen', e => {
+      const b = e.popup.getElement().querySelector('[data-open]');
+      if (b) b.onclick = () => openShop(b.dataset.open);
+    });
+  }
+  setTimeout(() => map.invalidateSize(), 0);
+  layer.clearLayers();
+  if (meMarker) meMarker.remove();
+  meMarker = L.marker([here.lat, here.lon], {icon:L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[16, 16]})}).addTo(map);
+  const {picks, near} = pool(cat);
+  const add = (s, star) => {
+    const C = CAT[s.k[0]];
+    L.marker([s.lat, s.lon], {icon:L.divIcon({className:'', html:`<div class="pin${star ? ' star' : ''}">${star ? '⭐' : C?.e || '🍽️'}</div>`, iconSize:star ? [30, 30] : [26, 26]}), zIndexOffset:star ? 1000 : 0})
+      .bindPopup(`<b>${esc(s.n)}</b><br>${fmt(s.m)} ${openHtml(s)}<br><button data-open="${esc(s.id)}">看店家</button>`).addTo(layer);
+  };
+  near.slice(0, 300).forEach(s => add(s, false));
+  picks.forEach(s => add(s, true));
+}
+
+// 收藏：想去／去過
+function saveFavs() { store.set('favs', favs); }
+function setFav(s, patch) {
+  const base = favs[s.id] || {s:{id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web}, st:'', r:0, note:''};
+  const f = {...base, ...patch, t:Date.now()};
+  if (!f.st && !f.r && !f.note) delete favs[s.id]; else favs[s.id] = f;
+  saveFavs();
+}
+function renderFav() {
+  const all = Object.values(favs).map(f => ({...f.s, m:here ? dist(here, f.s) : 0, f}));
+  const list = all.filter(x => favTab === 'rated' ? x.f.r : x.f.st === favTab)
+    .sort((a, b) => favTab === 'rated' ? b.f.r - a.f.r || a.m - b.m : a.m - b.m);
+  remember(all);
+  const cnt = t => all.filter(x => t === 'rated' ? x.f.r : x.f.st === t).length;
+  let h = `<div class="seg">
+    <button data-ft="want" class="${favTab === 'want' ? 'on' : ''}">想去 ${cnt('want')}</button>
+    <button data-ft="been" class="${favTab === 'been' ? 'on' : ''}">去過 ${cnt('been')}</button>
+    <button data-ft="rated" class="${favTab === 'rated' ? 'on' : ''}">我的評分 ${cnt('rated')}</button></div>`;
+  if (!list.length) h += `<div class="empty">${favTab === 'want' ? '還沒有想去的店。<br>在店家清單按 🤍，或打開店家頁按「想去」。' : favTab === 'been' ? '還沒有去過的店。<br>吃完在店家頁按「去過」，順便打分數、寫筆記。' : '還沒有評分。<br>打開店家頁就能幫它打星星。'}</div>`;
+  else h += list.map(s => card(s, !!s.src)).join('');
+  h += '<footer>收藏只存在這支手機上，不用登入</footer>';
+  $('v-fav').innerHTML = h;
+  $('v-fav').querySelectorAll('[data-ft]').forEach(b => b.onclick = () => { favTab = b.dataset.ft; renderFav(); });
+}
+
+// 店家頁
+function openShop(id) {
+  const s0 = shown.get(id) || favs[id]?.s;
+  if (!s0) return;
+  const s = {...s0, m:here ? dist(here, s0) : 0};
+  const f = favs[id] || {st:'', r:0, note:''};
+  const tags = s.k.map(k => CAT[k] ? CAT[k].e + ' ' + CAT[k].name : '').filter(Boolean).join('、');
+  const oh = s.h ? `${openHtml(s)} ${esc(ohText(s.h))}` : '營業時間未知，可按「Google 評論」查看';
+  $('sheet').innerHTML = `<div class="sb"><div class="grab"></div>
+    <div class="sh-top"><div class="thumb">${emoji(s)}</div><div><h2>${esc(s.n)}</h2><div class="line2">${s.src ? '<span class="badge">網友推薦</span>' : ''}<span>${fmt(s.m)}</span></div></div><button class="sh-x" onclick="sheet.close()">✕</button></div>
+    <div class="rows">
+      ${s.src ? `<div><i>⭐</i><span>${esc(s.d)}　<a href="${esc(s.src)}" target="_blank" rel="noopener">看食記</a></span></div>` : ''}
+      <div><i>🏷️</i><span>${esc(tags)}</span></div>
+      <div><i>🕒</i><span>${oh}</span></div>
+      <div><i>📍</i><span>${esc(s.a || '地址未登記')}</span></div>
+      ${s.tel ? `<div><i>📞</i><a href="tel:${esc(s.tel.replace(/\s/g, ''))}">${esc(s.tel)}</a></div>` : ''}
+      ${s.web ? `<div><i>🔗</i><a href="${esc(s.web)}" target="_blank" rel="noopener">店家網站</a></div>` : ''}
+    </div>
+    <div class="grid">
+      <a class="nav" href="${navUrl(s)}" target="_blank" rel="noopener"><span>🧭</span>導航</a>
+      <a href="${ifoodieUrl(s)}" target="_blank" rel="noopener"><span>📝</span>看愛食記</a>
+      <a href="${gmapUrl(s)}" target="_blank" rel="noopener"><span>⭐</span>Google 評論</a>
+      <a href="${threadsUrl(s)}" target="_blank" rel="noopener"><span>🧵</span>Threads</a>
+      <a href="${igUrl(s)}" target="_blank" rel="noopener"><span>📷</span>IG</a>
+      <button id="share"><span>📤</span>分享</button>
+    </div>
+    <div class="my"><h3>我的紀錄</h3>
+      <div class="seg" style="margin-top:0">
+        <button data-st="want" class="${f.st === 'want' ? 'on' : ''}">❤️ 想去</button>
+        <button data-st="been" class="${f.st === 'been' ? 'on' : ''}">✅ 去過</button>
+      </div>
+      <div class="stars" style="margin-top:10px">${[1, 2, 3, 4, 5].map(i => `<button data-r="${i}" class="${i <= f.r ? 'on' : ''}">★</button>`).join('')}</div>
+      <textarea id="note" placeholder="寫點筆記，例如：必點牛肉麵、週一公休">${esc(f.note)}</textarea>
+    </div></div>`;
+  const sh = $('sheet');
+  sh.querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
+    const st = (favs[id]?.st === b.dataset.st) ? '' : b.dataset.st;
+    setFav(s, {st}); sh.querySelectorAll('[data-st]').forEach(x => x.classList.toggle('on', x.dataset.st === st)); refresh();
+  });
+  sh.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+    const r = favs[id]?.r === +b.dataset.r ? 0 : +b.dataset.r;
+    setFav(s, {r}); sh.querySelectorAll('[data-r]').forEach(x => x.classList.toggle('on', +x.dataset.r <= r)); refresh();
+  });
+  $('note').oninput = e => setFav(s, {note:e.target.value});
+  $('share').onclick = () => share(s);
+  if (!sh.open) sh.showModal();
+}
+function refresh() { if (view === 'fav') renderFav(); else render(); }
+
+async function share(s) {
+  const text = `${s.n}${s.a ? '\n' + s.a : ''}${s.d ? '\n' + s.d : ''}`;
+  const url = gmapUrl(s);
+  if (navigator.share) { try { await navigator.share({title:s.n, text, url}); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  location.href = 'https://line.me/R/share?text=' + encodeURIComponent(text + '\n' + url);
 }
 
 // 不要求 GPS 精準定位，用網路定位幾乎是秒回，5 公里範圍夠用了
@@ -280,8 +537,9 @@ async function start(retry) {
     approx = !p;
     if (p) store.set('lastPos', p);
     here = p || last || JINGPING;
+    if (map) map.setView([here.lat, here.lon], 16);
   }
-  $('status').textContent = approx ? '抓不到定位，先用' + (store.get('lastPos') ? '上次的位置' : '景平站') : '已用你目前的位置';
+  $('status').textContent = approx ? '抓不到定位，先用' + (store.get('lastPos') ? '上次的位置' : '景平站') : '📍 你目前的位置';
   $('status').classList.toggle('err', approx);
   nearby = []; loading = true; failed = false; render();
   await loadNearby(id);
@@ -289,30 +547,55 @@ async function start(retry) {
 
 function drawOne() {
   const {picks, near} = pool(cat);
-  const res = $('res'), C = CAT[cat];
-  if (!picks.length && !near.length) { res.innerHTML = '<p>這個範圍內還沒有店家可以抽。</p><div class="row"><button onclick="dlg.close()">好</button></div>'; dlg.showModal(); return; }
-  // 網友推薦的店多放幾次，比較容易抽到
-  const bag = picks.flatMap(s => [s, s, s]).concat(near);
+  const res = $('res'), dlg = $('draw-dlg'), label = cat === 'all' ? '全部' : CAT[cat].name;
+  if (!picks.length && !near.length) { res.innerHTML = '<p>這個範圍內還沒有店家可以抽。</p><div class="row"><button onclick="this.closest(\'dialog\').close()">好</button></div>'; dlg.showModal(); return; }
+  // 網友推薦和想去的店多放幾次，比較容易抽到
+  const bag = picks.flatMap(s => [s, s, s]).concat(near.flatMap(s => favs[s.id]?.st === 'want' ? [s, s, s] : [s]));
   let i = 0, s;
   res.className = 'spin'; dlg.showModal();
   const tick = () => {
     s = bag[Math.floor(Math.random() * bag.length)];
-    res.innerHTML = `<span class="cat" style="background:${C.color}">${C.name}</span><div class="nm">${esc(s.n)}</div><div class="meta">${fmt(s.m)}</div>`;
+    res.innerHTML = `<span class="cat">${esc(label)}</span><div class="nm">${esc(s.n)}</div><div class="meta">${fmt(s.m)}</div>`;
     if (++i < 14) setTimeout(tick, 40 + i * 12);
     else {
       res.className = '';
       res.innerHTML += `<div class="meta">${s.d ? '⭐ 網友推薦：' + esc(s.d) : esc(s.a || '')}</div>
-        <div class="row"><button onclick="drawOne()">再抽一次</button><a href="${navUrl(s)}" target="_blank" rel="noopener">🧭 出發</a></div>`;
+        <div class="row"><button id="again">再抽一次</button><a href="${navUrl(s)}" target="_blank" rel="noopener">🧭 出發</a></div>
+        <div class="row" style="margin-top:8px"><button id="detail">看店家</button></div>`;
+      $('again').onclick = drawOne;
+      $('detail').onclick = () => { dlg.close(); openShop(s.id); };
     }
   };
   tick();
 }
 
-tabs();
+// 事件
+document.addEventListener('click', e => {
+  const h = e.target.closest('[data-heart]');
+  if (h) {
+    e.stopPropagation();
+    const s = shown.get(h.dataset.heart) || favs[h.dataset.heart]?.s;
+    if (s) { setFav(s, {st:favs[s.id]?.st ? '' : 'want'}); refresh(); }
+    return;
+  }
+  const it = e.target.closest('.item[data-id]');
+  if (it) openShop(it.dataset.id);
+});
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  view = b.dataset.v;
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + view));
+  if (view === 'map') drawMap();
+  if (view === 'fav') renderFav();
+});
+let qt;
+$('q').oninput = e => { clearTimeout(qt); $('qx').hidden = !e.target.value; qt = setTimeout(() => { query = e.target.value.trim(); render(); }, 200); };
+$('qx').onclick = () => { $('q').value = ''; $('qx').hidden = true; query = ''; render(); };
+$('openNow').onclick = () => { onlyOpen = !onlyOpen; $('openNow').classList.toggle('on', onlyOpen); render(); };
 $('radius').onchange = render;
 $('reload').onclick = () => start(false);
-$('draw').onclick = drawOne;
-$('dlg').addEventListener('click', e => { if (e.target.id === 'dlg') dlg.close(); });
+for (const d of [$('sheet'), $('draw-dlg')]) d.addEventListener('click', e => { if (e.target === d) d.close(); });
+chips();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 start(false);
 </script>
