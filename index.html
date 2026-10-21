@@ -40,6 +40,7 @@ main{flex:1;position:relative;overflow:hidden}
 .view.on{display:block}
 #v-map{padding:0}
 #map{position:absolute;inset:0}
+#mapHint{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:500;background:rgba(0,0,0,.7);color:#fff;font-size:13px;border-radius:999px;padding:6px 12px;white-space:nowrap}
 .draw{display:block;width:100%;margin:10px 0 0;border:0;border-radius:12px;padding:11px;font-size:15px;font-weight:700;color:#fff;background:linear-gradient(90deg,#e65100,#f9a825)}
 .sec{font-size:13px;color:var(--sub);margin:16px 2px 0;font-weight:600}
 .sec small{font-weight:400}
@@ -130,7 +131,7 @@ footer{font-size:11px;color:var(--sub);text-align:center;padding:14px 0 4px;line
 </div>
 <main>
   <div class="view on" id="v-list"></div>
-  <div class="view" id="v-map"><div id="map"></div></div>
+  <div class="view" id="v-map"><div id="map"></div><div id="mapHint" hidden>這裡店太多，放大地圖看更多店家</div></div>
   <div class="view" id="v-fav"></div>
 </main>
 <nav>
@@ -411,7 +412,7 @@ function chips() {
   $('chips').innerHTML = list.map(C => `<button class="chip${C.k === cat ? ' on' : ''}" data-k="${C.k}">${C.e} ${C.name}<small id="n-${C.k}"></small></button>`).join('');
   $('chips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
     $('chips').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
-    cat = b.dataset.k; store.set('cat', cat); render(); $('v-list').scrollTop = 0;
+    cat = b.dataset.k; store.set('cat', cat); listLimit = 100; render(); $('v-list').scrollTop = 0;
   });
   $('chips').querySelector('.on').scrollIntoView({inline:'center', block:'nearest'});
 }
@@ -432,22 +433,25 @@ function render() {
   if (waiting) h += '<div class="empty">正在找附近店家…</div>';
   else if (failed) h += '<div class="empty">附近店家暫時抓不到，可能是網路不穩。<br><button onclick="start(true)">再試一次</button></div>';
   else if (!near.length) h += `<div class="empty">找不到符合的店家${onlyOpen ? '（只看營業中：很多小店沒登記營業時間）' : ''}，試試別的餐種、關鍵字或把範圍調大。</div>`;
-  else h += near.slice(0, 100).map(s => card(s, false)).join('') + (near.length > 100 ? `<div class="empty">還有 ${near.length - 100} 家，用搜尋或縮小範圍找更快</div>` : '');
+  else h += near.slice(0, listLimit).map(s => card(s, false)).join('') + (near.length > listLimit ? `<div class="empty">還有 ${near.length - listLimit} 家<br><button id="more">再顯示 100 家</button></div>` : '');
   h += '<footer>附近店家來自 OpenStreetMap 開放地圖，免金鑰' + (dataDate ? '（' + dataDate + ' 更新）' : '') + '<br>網友推薦整理自食記與美食平台，出發前建議先確認營業時間</footer>';
   $('v-list').innerHTML = h;
   $('draw').onclick = drawOne;
+  if ($('more')) $('more').onclick = () => { const y = $('v-list').scrollTop; listLimit += 100; render(); $('v-list').scrollTop = y; };
   if (view === 'map') drawMap();
   if (view === 'fav') renderFav();
 }
 
 // 地圖模式
-let map, layer, meMarker;
+let map, layer, meMarker, listLimit = 100;
+const MAP_MAX = 400;   // 地圖一次最多畫幾家，太多手機會卡
 function drawMap() {
   if (!here) return;
   if (!map) {
     map = L.map('map', {zoomControl:false}).setView([here.lat, here.lon], 16);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
     layer = L.layerGroup().addTo(map);
+    map.on('moveend', drawPins);
     map.on('popupopen', e => {
       const b = e.popup.getElement().querySelector('[data-open]');
       if (b) b.onclick = () => openShop(b.dataset.open);
@@ -457,14 +461,23 @@ function drawMap() {
   layer.clearLayers();
   if (meMarker) meMarker.remove();
   meMarker = L.marker([here.lat, here.lon], {icon:L.divIcon({className:'', html:'<div class="me"></div>', iconSize:[16, 16]})}).addTo(map);
+  drawPins();
+}
+// 只畫目前地圖畫面裡的店，離畫面中心近的優先；移動或縮放地圖就重畫
+function drawPins() {
+  if (!map || view !== 'map') return;
+  layer.clearLayers();
   const {picks, near} = pool(cat);
+  const b = map.getBounds().pad(0.2), c = map.getCenter(), ctr = {lat:c.lat, lon:c.lng};
+  const inView = near.filter(s => b.contains([s.lat, s.lon])).sort((x, y) => dist(ctr, x) - dist(ctr, y));
   const add = (s, star) => {
     const C = CAT[s.k[0]];
     L.marker([s.lat, s.lon], {icon:L.divIcon({className:'', html:`<div class="pin${star ? ' star' : ''}">${star ? '⭐' : C?.e || '🍽️'}</div>`, iconSize:star ? [30, 30] : [26, 26]}), zIndexOffset:star ? 1000 : 0})
-      .bindPopup(`<b>${esc(s.n)}</b><br>${fmt(s.m)} ${openHtml(s)}<br><button data-open="${esc(s.id)}">看店家</button>`).addTo(layer);
+      .bindPopup(`<b>${esc(s.n)}</b><br>${s.mall ? '🏬 ' + esc(s.mall) + '<br>' : ''}${fmt(s.m)} ${openHtml(s)}<br><button data-open="${esc(s.id)}">看店家</button>`).addTo(layer);
   };
-  near.slice(0, 300).forEach(s => add(s, false));
+  inView.slice(0, MAP_MAX).forEach(s => add(s, false));
   picks.forEach(s => add(s, true));
+  $('mapHint').hidden = inView.length <= MAP_MAX;
 }
 
 // 收藏：想去／去過
