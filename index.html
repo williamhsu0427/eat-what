@@ -55,6 +55,11 @@ main{flex:1;position:relative;overflow:hidden}
 .badge{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--soft);color:var(--softt)}
 .open{color:var(--ok);font-weight:600}.closed{color:var(--no);font-weight:600}
 .mine{color:#f9a825;font-weight:700}
+.old{color:var(--sub);font-size:12px;border:1px dashed var(--line);border-radius:6px;padding:0 5px}
+.rows span.old{border:0;padding:0;font-size:14px;color:var(--no)}
+.gone{display:block;width:100%;margin-top:12px;border:1px solid var(--line);background:var(--card);color:var(--no);border-radius:12px;padding:11px;font-size:15px}
+.osm{font-size:12px;color:var(--sub);text-align:center;margin-top:8px}
+.osm a{color:var(--main)}
 .heart{flex:0 0 auto;border:0;background:none;font-size:22px;padding:0 2px;align-self:center;color:var(--sub)}
 .empty{text-align:center;color:var(--sub);padding:28px 16px;line-height:1.7;font-size:14px}
 .empty button{border:0;background:var(--main);color:#fff;border-radius:8px;padding:7px 12px;font-size:14px;margin-top:6px}
@@ -114,6 +119,7 @@ footer{font-size:11px;color:var(--sub);text-align:center;padding:14px 0 4px;line
 <div class="bar">
   <span id="status">定位中…</span>
   <button class="tg" id="openNow">營業中</button>
+  <button class="tg" id="hideOld">隱藏舊資料</button>
   <select id="radius">
     <option value="500">500 公尺</option>
     <option value="1000">1 公里</option>
@@ -190,6 +196,11 @@ const store = {
 };
 let here = null, cat = store.get('cat') || 'all', nearby = [], approx = false, loading = true, failed = false, runId = 0;
 let view = 'list', onlyOpen = false, query = '', favTab = 'want';
+let hideOld = !!store.get('hideOld');
+let gone = store.get('gone') || {};   // 你按過「這家倒了」的店：id -> 店家資料
+// 超過這麼多年沒人更新的店，算「舊資料」
+const OLD_YEARS = 5, THIS_YEAR = new Date().getFullYear();
+const isOld = s => s.yr && s.yr <= THIS_YEAR - OLD_YEARS;
 let favs = store.get('favs') || {};   // id -> {s:店家資料, st:'want'|'been'|'', r:0-5, note, t}
 if (cat !== 'all' && !CAT[cat]) cat = 'all';
 
@@ -288,12 +299,14 @@ function getIndex() {
   if (!tileIndex) tileIndex = fetch('data/index.json').then(r => r.ok ? r.json() : null).catch(() => null);
   return tileIndex;
 }
-function fromRow(r) {
-  const [id, n, lat, lon, am, cu = '', h = '', a = '', tel = '', web = '', veg = 0] = r;
+function fromRow(r, v) {
+  // v2 的第 5 欄是資料最後更新年份
+  const [id, n, lat, lon, yr] = r;
+  const [am, cu = '', h = '', a = '', tel = '', web = '', veg = 0] = r.slice(v === 2 ? 5 : 4);
   const t = {name:n, cuisine:cu};
   if (veg) t['diet:vegetarian'] = 'yes';
   const k = classify(t, am);
-  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu} : null;
+  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, yr:v === 2 ? yr : 0} : null;
 }
 function bbox(p, R) {
   const dLat = R / 111320, dLon = R / (111320 * Math.cos(p.lat * Math.PI / 180));
@@ -308,7 +321,7 @@ async function fetchTiles(p, R) {
     for (let x = Math.floor(w * 10); x <= Math.floor(e * 10); x++) if (have.has(y + '_' + x)) keys.push(y + '_' + x);
   if (!keys.length) return null;   // 不在台灣，改問資料站
   const rows = await Promise.all(keys.map(k => fetch('data/' + k + '.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
-  return rows.flat().map(fromRow).filter(Boolean);
+  return rows.flat().map(r => fromRow(r, idx.v)).filter(Boolean);
 }
 
 // 備用：台灣以外的地方才臨時問開放地圖資料站
@@ -360,7 +373,7 @@ function matchQuery(s) {
 }
 function pool(k) {
   const R = +$('radius').value;
-  const ok = s => (k === 'all' || s.k.includes(k)) && matchQuery(s) && (!onlyOpen || openState(s.h) === true);
+  const ok = s => (k === 'all' || s.k.includes(k)) && !gone[s.id] && !(hideOld && isOld(s)) && matchQuery(s) && (!onlyOpen || openState(s.h) === true);
   const withD = arr => arr.filter(ok).map(s => ({...s, m:dist(here, s)})).filter(s => s.m <= R).sort((a, b) => a.m - b.m);
   const picks = onlyOpen ? [] : withD(PICKS);
   const names = new Set(picks.map(p => p.n.slice(0, 3)));
@@ -376,7 +389,7 @@ function card(s, pick) {
     <div class="thumb">${emoji(s)}</div>
     <div class="info">
       <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
-      <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}<span>${esc(tags)}</span></div>
+      <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}<span>${esc(tags)}</span>${isOld(s) ? `<span class="old">資料 ${s.yr}</span>` : ''}</div>
       <div class="line3">${esc(pick ? s.d : (s.a || ''))}</div>
     </div>
     <button class="heart" data-heart="${esc(s.id)}" aria-label="收藏">${f?.st ? '❤️' : '🤍'}</button>
@@ -449,24 +462,32 @@ function drawMap() {
 }
 
 // 收藏：想去／去過
+function snap(s) { return {id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web, yr:s.yr}; }
+function setGone(s, on) {
+  if (on) gone[s.id] = snap(s); else delete gone[s.id];
+  store.set('gone', gone);
+}
 function saveFavs() { store.set('favs', favs); }
 function setFav(s, patch) {
-  const base = favs[s.id] || {s:{id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web}, st:'', r:0, note:''};
+  const base = favs[s.id] || {s:snap(s), st:'', r:0, note:''};
   const f = {...base, ...patch, t:Date.now()};
   if (!f.st && !f.r && !f.note) delete favs[s.id]; else favs[s.id] = f;
   saveFavs();
 }
 function renderFav() {
   const all = Object.values(favs).map(f => ({...f.s, m:here ? dist(here, f.s) : 0, f}));
-  const list = all.filter(x => favTab === 'rated' ? x.f.r : x.f.st === favTab)
+  const goneList = Object.values(gone).map(g => ({...g, m:here ? dist(here, g) : 0, f:{}}));
+  remember(goneList);
+  const list = favTab === 'gone' ? goneList.sort((a, b) => a.m - b.m) : all.filter(x => favTab === 'rated' ? x.f.r : x.f.st === favTab)
     .sort((a, b) => favTab === 'rated' ? b.f.r - a.f.r || a.m - b.m : a.m - b.m);
   remember(all);
   const cnt = t => all.filter(x => t === 'rated' ? x.f.r : x.f.st === t).length;
   let h = `<div class="seg">
     <button data-ft="want" class="${favTab === 'want' ? 'on' : ''}">想去 ${cnt('want')}</button>
     <button data-ft="been" class="${favTab === 'been' ? 'on' : ''}">去過 ${cnt('been')}</button>
-    <button data-ft="rated" class="${favTab === 'rated' ? 'on' : ''}">我的評分 ${cnt('rated')}</button></div>`;
-  if (!list.length) h += `<div class="empty">${favTab === 'want' ? '還沒有想去的店。<br>在店家清單按 🤍，或打開店家頁按「想去」。' : favTab === 'been' ? '還沒有去過的店。<br>吃完在店家頁按「去過」，順便打分數、寫筆記。' : '還沒有評分。<br>打開店家頁就能幫它打星星。'}</div>`;
+    <button data-ft="rated" class="${favTab === 'rated' ? 'on' : ''}">評分 ${cnt('rated')}</button>
+    <button data-ft="gone" class="${favTab === 'gone' ? 'on' : ''}">倒了 ${goneList.length}</button></div>`;
+  if (!list.length) h += `<div class="empty">${favTab === 'want' ? '還沒有想去的店。<br>在店家清單按 🤍，或打開店家頁按「想去」。' : favTab === 'been' ? '還沒有去過的店。<br>吃完在店家頁按「去過」，順便打分數、寫筆記。' : favTab === 'gone' ? '沒有標成倒閉的店。<br>遇到倒掉或換招牌的店，在店家頁按「這家倒了」，它就不會再出現。' : '還沒有評分。<br>打開店家頁就能幫它打星星。'}</div>`;
   else h += list.map(s => card(s, !!s.src)).join('');
   h += '<footer>收藏只存在這支手機上，不用登入</footer>';
   $('v-fav').innerHTML = h;
@@ -475,7 +496,7 @@ function renderFav() {
 
 // 店家頁
 function openShop(id) {
-  const s0 = shown.get(id) || favs[id]?.s;
+  const s0 = shown.get(id) || favs[id]?.s || gone[id];
   if (!s0) return;
   const s = {...s0, m:here ? dist(here, s0) : 0};
   const f = favs[id] || {st:'', r:0, note:''};
@@ -488,6 +509,7 @@ function openShop(id) {
       <div><i>🏷️</i><span>${esc(tags)}</span></div>
       <div><i>🕒</i><span>${oh}</span></div>
       <div><i>📍</i><span>${esc(s.a || '地址未登記')}</span></div>
+      ${s.yr ? `<div><i>🗓️</i><span${isOld(s) ? ' class="old"' : ''}>地圖資料最後更新：${s.yr} 年${isOld(s) ? '（很久沒人更新，可能已經倒了）' : ''}</span></div>` : ''}
       ${s.tel ? `<div><i>📞</i><a href="tel:${esc(s.tel.replace(/\s/g, ''))}">${esc(s.tel)}</a></div>` : ''}
       ${s.web ? `<div><i>🔗</i><a href="${esc(s.web)}" target="_blank" rel="noopener">店家網站</a></div>` : ''}
     </div>
@@ -506,7 +528,10 @@ function openShop(id) {
       </div>
       <div class="stars" style="margin-top:10px">${[1, 2, 3, 4, 5].map(i => `<button data-r="${i}" class="${i <= f.r ? 'on' : ''}">★</button>`).join('')}</div>
       <textarea id="note" placeholder="寫點筆記，例如：必點牛肉麵、週一公休">${esc(f.note)}</textarea>
-    </div></div>`;
+    </div>
+    <button class="gone" id="gone">${gone[id] ? '↩️ 其實還在，恢復顯示' : '🚫 這家倒了／換店了，不要再出現'}</button>
+    ${id.startsWith('o:') ? `<div class="osm">也可以<a href="https://www.openstreetmap.org/${{n:'node', w:'way'}[id[2]]}/${id.slice(3)}" target="_blank" rel="noopener">到開放地圖更正</a>，幫其他人一起修</div>` : ''}
+    </div>`;
   const sh = $('sheet');
   sh.querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
     const st = (favs[id]?.st === b.dataset.st) ? '' : b.dataset.st;
@@ -517,6 +542,7 @@ function openShop(id) {
     setFav(s, {r}); sh.querySelectorAll('[data-r]').forEach(x => x.classList.toggle('on', +x.dataset.r <= r)); refresh();
   });
   $('note').oninput = e => setFav(s, {note:e.target.value});
+  $('gone').onclick = () => { setGone(s, !gone[id]); sh.close(); refresh(); };
   $('share').onclick = () => share(s);
   if (!sh.open) sh.showModal();
 }
@@ -604,6 +630,8 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
 let qt;
 $('q').oninput = e => { clearTimeout(qt); $('qx').hidden = !e.target.value; qt = setTimeout(() => { query = e.target.value.trim(); render(); }, 200); };
 $('qx').onclick = () => { $('q').value = ''; $('qx').hidden = true; query = ''; render(); };
+$('hideOld').classList.toggle('on', hideOld);
+$('hideOld').onclick = () => { hideOld = !hideOld; store.set('hideOld', hideOld); $('hideOld').classList.toggle('on', hideOld); render(); };
 $('openNow').onclick = () => { onlyOpen = !onlyOpen; $('openNow').classList.toggle('on', onlyOpen); render(); };
 $('radius').onchange = render;
 $('reload').onclick = () => start(false);

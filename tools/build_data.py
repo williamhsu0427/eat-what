@@ -13,14 +13,18 @@ class H(osmium.SimpleHandler):
         self.tiles = collections.defaultdict(list)
         self.n = 0
 
-    def add(self, kind, oid, t, lat, lon):
+    def add(self, kind, oid, t, lat, lon, year):
         name = t.get('name')
         if not name or t.get('amenity') not in AMENITY:
+            return
+        # 已標示結束營業的不收
+        if t.get('end_date') or t.get('opening_hours', '').strip().lower() in ('closed', 'off'):
             return
         addr = ''.join(x for x in [t.get('addr:city', ''), t.get('addr:district', ''), t.get('addr:street', ''),
                                     (t.get('addr:housenumber') + '號') if t.get('addr:housenumber') else ''] if x)
         veg = 1 if (t.get('diet:vegetarian') in ('yes', 'only') or t.get('diet:vegan') in ('yes', 'only')) else 0
-        row = [kind + str(oid), name, round(lat, 5), round(lon, 5), t.get('amenity'), t.get('cuisine', ''),
+        # 第 5 欄是這筆資料最後有人更新的年份，讓 App 判斷資料新舊
+        row = [kind + str(oid), name, round(lat, 5), round(lon, 5), year, t.get('amenity'), t.get('cuisine', ''),
                t.get('opening_hours', ''), addr, t.get('phone') or t.get('contact:phone', ''),
                t.get('website') or t.get('contact:website', ''), veg]
         while row and row[-1] in ('', 0):
@@ -31,7 +35,7 @@ class H(osmium.SimpleHandler):
 
     def node(self, n):
         if 'amenity' in n.tags and 'name' in n.tags:
-            self.add('n', n.id, dict(n.tags), n.location.lat, n.location.lon)
+            self.add('n', n.id, dict(n.tags), n.location.lat, n.location.lon, n.timestamp.year)
 
     def way(self, w):
         if 'amenity' not in w.tags or 'name' not in w.tags:
@@ -41,7 +45,7 @@ class H(osmium.SimpleHandler):
         except osmium.InvalidLocationError:
             return
         if pts:
-            self.add('w', w.id, dict(w.tags), sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
+            self.add('w', w.id, dict(w.tags), sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts), w.timestamp.year)
 
 
 h = H()
@@ -55,5 +59,5 @@ for key, rows in h.tiles.items():
     with open(os.path.join(OUT, key + '.json'), 'w', encoding='utf-8') as fp:
         json.dump(rows, fp, ensure_ascii=False, separators=(',', ':'))
 with open(os.path.join(OUT, 'index.json'), 'w', encoding='utf-8') as fp:
-    json.dump({'updated': datetime.date.today().isoformat(), 'count': h.n, 'tiles': sorted(h.tiles)}, fp, separators=(',', ':'))
+    json.dump({'v': 2, 'updated': datetime.date.today().isoformat(), 'count': h.n, 'tiles': sorted(h.tiles)}, fp, separators=(',', ':'))
 print('shops', h.n, 'tiles', len(h.tiles))
