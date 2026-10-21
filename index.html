@@ -116,8 +116,13 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 #res .row button,#res .row a{flex:1;text-align:center;text-decoration:none;border:0;border-radius:12px;padding:13px 6px;font-size:16px;font-weight:700}
 #res .row button{background:var(--bg);color:var(--text)}
 #res .row a{background:var(--main);color:#fff}
-.pin{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--c);display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
-.pin.star{border-color:#e65100;background:#fff3e0;width:30px;height:30px}
+.pin{position:relative;width:34px;height:44px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+.pin b{position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--c);border:2px solid #fff;display:flex;align-items:center;justify-content:center}
+.pin b i{font-style:normal;width:24px;height:24px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
+.pin::after{content:'';position:absolute;left:10px;top:30px;border:7px solid transparent;border-top:12px solid var(--c)}
+.pin.star{transform:scale(1.2);transform-origin:50% 100%}
+/* 底圖調淡，讓店家圖釘跳出來 */
+.leaflet-tile-pane{filter:grayscale(.7) brightness(1.06) contrast(.85)}
 .me{width:16px;height:16px;border-radius:50%;background:#1e88e5;border:3px solid #fff;box-shadow:0 0 0 2px rgba(30,136,229,.4)}
 .leaflet-popup-content{font-size:14px;margin:10px 12px}
 .leaflet-popup-content button{margin-top:6px;border:0;background:#e65100;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
@@ -177,6 +182,8 @@ const CATS = [
   {k:'veg', name:'素食', e:'🥗', c:/vegetarian|vegan/, n:/素食|蔬食|素|vegan/i},
   {k:'mall', name:'百貨美食街', e:'🏬', c:/(?!)/, n:/美食街|美食廣場|food ?court|美食館/i},
 ];
+// 地圖圖釘顏色，每種料理一個顏色
+const PIN = {cn:'#c62828', sn:'#ef6c00', hp:'#d84315', jp:'#1565c0', rm:'#4527a0', kr:'#ad1457', it:'#2e7d32', th:'#6a1b9a', us:'#5d4037', br:'#f9a825', ds:'#ec407a', cf:'#795548', veg:'#558b2f', mall:'#00838f'};
 const CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
 
 // 網友推薦名單：景平站一帶，整理自食記與美食平台（座標為約略位置，導航用店名＋地址）
@@ -502,7 +509,7 @@ function drawPins() {
   const inView = near.filter(s => b.contains([s.lat, s.lon])).sort((x, y) => dist(ctr, x) - dist(ctr, y));
   const add = (s, star) => {
     const C = CAT[s.k[0]];
-    L.marker([s.lat, s.lon], {icon:L.divIcon({className:'', html:`<div class="pin${star ? ' star' : ''}">${star ? '⭐' : C?.e || '🍽️'}</div>`, iconSize:star ? [30, 30] : [26, 26]}), zIndexOffset:star ? 1000 : 0})
+    L.marker([s.lat, s.lon], {icon:L.divIcon({className:'', html:`<div class="pin${star ? ' star' : ''}" style="--c:${star ? '#e65100' : PIN[s.k[0]] || '#546e7a'}"><b><i>${star ? '⭐' : C?.e || '🍽️'}</i></b></div>`, iconSize:[34, 44], iconAnchor:[17, 44], popupAnchor:[0, -40]}), zIndexOffset:star ? 1000 : 0})
       .bindPopup(`<b>${esc(s.n)}</b><br>${s.mall ? '🏬 ' + esc(s.mall) + '<br>' : ''}${fmt(s.m)} ${openHtml(s)}<br><button data-open="${esc(s.id)}">看店家</button>`).addTo(layer);
   };
   inView.slice(0, MAP_MAX).forEach(s => add(s, false));
