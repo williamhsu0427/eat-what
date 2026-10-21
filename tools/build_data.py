@@ -138,5 +138,5 @@ for key, rows in tiles.items():
     with open(os.path.join(OUT, key + '.json'), 'w', encoding='utf-8') as fp:
         json.dump(rows, fp, ensure_ascii=False, separators=(',', ':'))
 with open(os.path.join(OUT, 'index.json'), 'w', encoding='utf-8') as fp:
-    json.dump({'v': 3, 'updated': datetime.date.today().isoformat(), 'count': len(h.shops), 'tiles': sorted(tiles)}, fp, separators=(',', ':'))
+    json.dump({'v': 3, 'updated': datetime.date.today().isoformat(), 'built': datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d%H%M'), 'count': len(h.shops), 'tiles': sorted(tiles)}, fp, separators=(',', ':'))
 print('shops', len(h.shops), 'malls', len(h.malls), 'night markets (points)', len(h.night_pts), 'in malls', in_mall, 'tiles', len(tiles))

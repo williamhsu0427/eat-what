@@ -1,5 +1,5 @@
 // 離線時仍可打開 App 外殼；店家資料一律走網路
-const C = 'eat-v16';
+const C = 'eat-v17';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'leaflet.js', 'leaflet.css'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C).map(k => caches.delete(k))))); self.clients.claim(); });

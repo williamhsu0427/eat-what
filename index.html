@@ -345,7 +345,7 @@ async function overpass(q) {
 // 主要資料：事先從開放地圖整理好、放在 App 旁邊的全台店家（每週自動更新），打開直接讀，不用等資料站
 let tileIndex;
 function getIndex() {
-  if (!tileIndex) tileIndex = fetch('data/index.json').then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!tileIndex) tileIndex = fetch('data/index.json?t=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null);
   return tileIndex;
 }
 function fromRow(r, v) {
@@ -370,7 +370,7 @@ async function fetchTiles(p, R) {
   for (let y = Math.floor(s * 10); y <= Math.floor(n * 10); y++)
     for (let x = Math.floor(w * 10); x <= Math.floor(e * 10); x++) if (have.has(y + '_' + x)) keys.push(y + '_' + x);
   if (!keys.length) return null;   // 不在台灣，改問資料站
-  const rows = await Promise.all(keys.map(k => fetch('data/' + k + '.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
+  const rows = await Promise.all(keys.map(k => fetch('data/' + k + '.json?v=' + encodeURIComponent(idx.built || idx.updated + '-' + idx.count)).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
   return rows.flat().map(r => fromRow(r, idx.v)).filter(Boolean);
 }
 
