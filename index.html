@@ -64,6 +64,10 @@ main{flex:1;position:relative;overflow:hidden}
 .pr button.on{background:var(--ok);border-color:var(--ok);color:#fff}
 .pr button.on small{color:rgba(255,255,255,.85)}
 .bud{margin:0 0 14px}
+.dchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -4px 10px;padding:0 4px}
+.dchips::-webkit-scrollbar{display:none}
+.dchips button{flex:0 0 auto;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:6px 11px;font-size:13px;white-space:nowrap}
+.dchips button.on{background:var(--main);border-color:var(--main);color:#fff}
 .bud button{padding:8px 2px;font-size:13px;white-space:nowrap}
 .old{color:var(--sub);font-size:12px;border:1px dashed var(--line);border-radius:6px;padding:0 5px}
 .rows span.old{border:0;padding:0;font-size:14px;color:var(--no)}
@@ -438,7 +442,7 @@ function chips() {
   $('chips').innerHTML = list.map(C => `<button class="chip${C.k === cat ? ' on' : ''}" data-k="${C.k}">${C.e} ${C.name}<small id="n-${C.k}"></small></button>`).join('');
   $('chips').querySelectorAll('.chip').forEach(b => b.onclick = () => {
     $('chips').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b));
-    cat = b.dataset.k; store.set('cat', cat); listLimit = 100; render(); $('v-list').scrollTop = 0;
+    cat = b.dataset.k; store.set('cat', cat); listLimit = 200; render(); $('v-list').scrollTop = 0;
   });
   $('chips').querySelector('.on').scrollIntoView({inline:'center', block:'nearest'});
 }
@@ -459,17 +463,17 @@ function render() {
   if (waiting) h += '<div class="empty">正在找附近店家…</div>';
   else if (failed) h += '<div class="empty">附近店家暫時抓不到，可能是網路不穩。<br><button onclick="start(true)">再試一次</button></div>';
   else if (!near.length) h += `<div class="empty">找不到符合的店家${onlyOpen ? '（只看營業中：很多小店沒登記營業時間）' : ''}，試試別的餐種、關鍵字或把範圍調大。</div>`;
-  else h += near.slice(0, listLimit).map(s => card(s, false)).join('') + (near.length > listLimit ? `<div class="empty">還有 ${near.length - listLimit} 家<br><button id="more">再顯示 100 家</button></div>` : '');
+  else h += near.slice(0, listLimit).map(s => card(s, false)).join('') + (near.length > listLimit ? `<div class="empty">還有 ${near.length - listLimit} 家<br><button id="more">再顯示 200 家</button></div>` : '');
   h += '<footer>附近店家來自 OpenStreetMap 開放地圖，免金鑰' + (dataDate ? '（' + dataDate + ' 更新）' : '') + '<br>網友推薦整理自食記與美食平台，出發前建議先確認營業時間</footer>';
   $('v-list').innerHTML = h;
   $('draw').onclick = drawOne;
-  if ($('more')) $('more').onclick = () => { const y = $('v-list').scrollTop; listLimit += 100; render(); $('v-list').scrollTop = y; };
+  if ($('more')) $('more').onclick = () => { const y = $('v-list').scrollTop; listLimit += 200; render(); $('v-list').scrollTop = y; };
   if (view === 'map') drawMap();
   if (view === 'fav') renderFav();
 }
 
 // 地圖模式
-let map, layer, meMarker, listLimit = 100;
+let map, layer, meMarker, listLimit = 200;
 const MAP_MAX = 400;   // 地圖一次最多畫幾家，太多手機會卡
 function drawMap() {
   if (!here) return;
@@ -637,14 +641,24 @@ async function start(retry) {
 }
 
 let budget = +store.get('budget') || 0;   // 0 = 不限
+let drawCat = null;   // 抽一家用的餐點種類，第一次打開跟著目前分頁
 function drawOne() {
-  const {picks, near} = pool(cat);
-  const res = $('res'), dlg = $('draw-dlg'), label = cat === 'all' ? '全部' : CAT[cat].name;
-  const seg = `<div class="seg bud">${[[0, '不限'], [1, '$ 150內'], [2, '$$ 150-400'], [3, '$$$ 400+']].map(([v, t]) => `<button data-b="${v}" class="${budget === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+  const dlg = $('draw-dlg');
+  if (!dlg.open) drawCat = cat;
+  const dc = drawCat;
+  const {picks, near} = pool(dc);
+  const res = $('res'), label = dc === 'all' ? '全部' : CAT[dc].name;
+  const cats = `<div class="dchips">${[{k:'all', name:'全部', e:'🍽️'}].concat(CATS).map(C => `<button data-dc="${C.k}" class="${C.k === dc ? 'on' : ''}">${C.e} ${C.name}</button>`).join('')}</div>`;
+  const seg = cats + `<div class="seg bud">${[[0, '不限'], [1, '$ 150內'], [2, '$$ 150-400'], [3, '$$$ 400+']].map(([v, t]) => `<button data-b="${v}" class="${budget === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
   const ok = s => !budget || priceOf(s) === budget;
   // 網友推薦和想去的店多放幾次，比較容易抽到
   const bag = picks.filter(ok).flatMap(s => [s, s, s]).concat(near.filter(ok).flatMap(s => favs[s.id]?.st === 'want' ? [s, s, s] : [s]));
-  const bind = () => res.querySelectorAll('[data-b]').forEach(x => x.onclick = () => { budget = +x.dataset.b; store.set('budget', budget); drawOne(); });
+  const bind = () => {
+    res.querySelectorAll('[data-b]').forEach(x => x.onclick = () => { budget = +x.dataset.b; store.set('budget', budget); drawOne(); });
+    res.querySelectorAll('[data-dc]').forEach(x => x.onclick = () => { drawCat = x.dataset.dc; drawOne(); });
+    const on = res.querySelector('.dchips .on');
+    if (on) on.parentNode.scrollLeft = on.offsetLeft - on.parentNode.offsetWidth / 2 + on.offsetWidth / 2;
+  };
   if (!dlg.open) dlg.showModal();
   if (!bag.length) {
     res.className = '';
