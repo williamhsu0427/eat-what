@@ -56,6 +56,15 @@ main{flex:1;position:relative;overflow:hidden}
 .badge{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--soft);color:var(--softt)}
 .open{color:var(--ok);font-weight:600}.closed{color:var(--no);font-weight:600}
 .mine{color:#f9a825;font-weight:700}
+.price{color:var(--ok);font-weight:700;font-size:12px}
+.pr{display:flex;gap:6px;align-items:center;margin-top:10px;font-size:13px;color:var(--sub)}
+.pr span{flex:0 0 auto;margin-right:2px}
+.pr button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:6px 2px;font-size:14px;font-weight:700;line-height:1.2}
+.pr button small{display:block;font-size:11px;font-weight:400;color:var(--sub)}
+.pr button.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.pr button.on small{color:rgba(255,255,255,.85)}
+.bud{margin:0 0 14px}
+.bud button{padding:8px 2px;font-size:13px;white-space:nowrap}
 .old{color:var(--sub);font-size:12px;border:1px dashed var(--line);border-radius:6px;padding:0 5px}
 .rows span.old{border:0;padding:0;font-size:14px;color:var(--no)}
 .gone{display:block;width:100%;margin-top:12px;border:1px solid var(--line);background:var(--card);color:var(--no);border-radius:12px;padding:11px;font-size:15px}
@@ -168,24 +177,24 @@ const CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
 
 // 網友推薦名單：景平站一帶，整理自食記與美食平台（座標為約略位置，導航用店名＋地址）
 const PICKS = [
-  {k:['hp'], n:'蘇記嘀兜雞', a:'新北市中和區景平路154號', lat:24.9918, lon:121.5190, d:'豬肚雞火鍋，招牌白胡椒湯頭', src:'https://woment.com.tw/12432/mrt-y10-food/'},
-  {k:['cn'], n:'麵麵軒', a:'新北市中和區景平路240巷2弄17號', lat:24.9936, lon:121.5158, d:'重慶小麵、酸辣粉、鮮蝦餛飩麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
-  {k:['hp'], n:'景平洞天 粵式煲湯獨享鍋', a:'新北市中和區景平路240巷2弄3號', lat:24.9934, lon:121.5157, d:'個人煲湯鍋＋自助吧，魚滿鍋', src:'https://mibaoma.tw/dongtianhotpot/'},
-  {k:['cn'], n:'港都熱炒', a:'新北市中和區大勇街12號', lat:24.9932, lon:121.5168, d:'粵菜大廚熱炒，開到深夜，宵夜好去處', src:'https://eggie.tw/blog/post/228321956'},
-  {k:['cn', 'sn'], n:'永芳陳家祖傳美食', a:'新北市中和區大勇街25巷2號', lat:24.9936, lon:121.5163, d:'在地老字號小吃', src:'https://ifoodie.tw/explore/%E6%96%B0%E5%8C%97%E5%B8%82/list/%E6%99%AF%E5%B9%B3%E8%B7%AF%E7%BE%8E%E9%A3%9F'},
-  {k:['jp', 'rm'], n:'藏味拉麵', a:'新北市中和區景安路132巷1號', lat:24.9942, lon:121.5044, d:'濃厚豚骨叉燒拉麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
-  {k:['jp'], n:'醇串食代', a:'新北市中和區景平路311號', lat:24.9927, lon:121.5126, d:'懷舊復古串燒居酒屋，要先訂位', src:'https://tenjo.tw/chunchuan/'},
-  {k:['jp', 'ds'], n:'私藏不藏私', a:'新北市中和區景安路167巷6號', lat:24.9947, lon:121.5061, d:'日式咖哩輕食和甜點，唐揚菠菜乾咖哩', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
-  {k:['us', 'br'], n:'B.burger 嗶嗶漢堡', a:'新北市中和區景平路240巷2弄19號', lat:24.9936, lon:121.5159, d:'明太子蝦排蛋堡，乾燥花牆好拍', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
-  {k:['it'], n:'尼西義大利麵', a:'新北市中和區景平路240巷2弄13號', lat:24.9935, lon:121.5157, d:'百元手工醬料義大利麵，CP 值高', src:'https://mibaoma.tw/nissipasta_juliano2005/'},
-  {k:['it'], n:'水牛哥義式坊', a:'新北市中和區景平路240巷1弄2號', lat:24.9930, lon:121.5155, d:'照燒章魚披薩、清炒蒜香海鮮麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
-  {k:['it'], n:'傑米義式小坊', a:'新北市中和區大勇街27巷2號', lat:24.9938, lon:121.5165, d:'墨魚起司海鮮義大利麵', src:'https://www.gomaji.com/blog/%E4%B8%AD%E5%92%8C%E7%BE%A9%E5%A4%A7%E5%88%A9%E9%BA%B5/'},
-  {k:['it'], n:'木可義式廚房', a:'新北市中和區自立路13號', lat:24.9951, lon:121.5221, d:'清炒系列最受歡迎，100～200 元', src:'https://www.fonfood.com/store/285759'},
-  {k:['th'], n:'泰可愛 SiamCute', a:'新北市中和區大勇街25巷15弄3號', lat:24.9940, lon:121.5152, d:'道地泰菜兼賣雜貨，泰式魚餅、咖哩海鮮', src:'https://ifoodie.tw/post/5f78618e8c906d7393617031'},
-  {k:['th'], n:'泰香館泰式料理', a:'新北市中和區景平路274號', lat:24.9926, lon:121.5142, d:'小店大人潮，月亮蝦餅、椒麻雞排', src:'https://justamy9282.pixnet.net/blog/post/462623897'},
-  {k:['th', 'veg'], n:'素速泰 SusuThai', a:'新北市中和區景平路298號', lat:24.9926, lon:121.5132, d:'純素泰式，椰汁紅咖哩飯', src:'https://lololo223344.pixnet.net/blog/post/346504113'},
-  {k:['th'], n:'泰糯糯泰式料理', a:'新北市中和區安樂路41號', lat:24.9920, lon:121.5117, d:'青木瓜沙拉、羅望子炒蝦，白飯續到飽', src:'https://may128.com/thai-noir-cuisine/'},
-  {k:['th'], n:'雲川泰緬小館', a:'新北市中和區景平路462號', lat:24.9930, lon:121.5065, d:'超厚月亮蝦餅、酸辣海鮮湯', src:'https://ifoodie.tw/post/5e96b07dd6895d7c5ebdcdab'},
+  {k:['hp'], n:'蘇記嘀兜雞', p:2, a:'新北市中和區景平路154號', lat:24.9918, lon:121.5190, d:'豬肚雞火鍋，招牌白胡椒湯頭', src:'https://woment.com.tw/12432/mrt-y10-food/'},
+  {k:['cn'], n:'麵麵軒', p:1, a:'新北市中和區景平路240巷2弄17號', lat:24.9936, lon:121.5158, d:'重慶小麵、酸辣粉、鮮蝦餛飩麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['hp'], n:'景平洞天 粵式煲湯獨享鍋', p:2, a:'新北市中和區景平路240巷2弄3號', lat:24.9934, lon:121.5157, d:'個人煲湯鍋＋自助吧，魚滿鍋', src:'https://mibaoma.tw/dongtianhotpot/'},
+  {k:['cn'], n:'港都熱炒', p:2, a:'新北市中和區大勇街12號', lat:24.9932, lon:121.5168, d:'粵菜大廚熱炒，開到深夜，宵夜好去處', src:'https://eggie.tw/blog/post/228321956'},
+  {k:['cn', 'sn'], n:'永芳陳家祖傳美食', p:1, a:'新北市中和區大勇街25巷2號', lat:24.9936, lon:121.5163, d:'在地老字號小吃', src:'https://ifoodie.tw/explore/%E6%96%B0%E5%8C%97%E5%B8%82/list/%E6%99%AF%E5%B9%B3%E8%B7%AF%E7%BE%8E%E9%A3%9F'},
+  {k:['jp', 'rm'], n:'藏味拉麵', p:2, a:'新北市中和區景安路132巷1號', lat:24.9942, lon:121.5044, d:'濃厚豚骨叉燒拉麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['jp'], n:'醇串食代', p:2, a:'新北市中和區景平路311號', lat:24.9927, lon:121.5126, d:'懷舊復古串燒居酒屋，要先訂位', src:'https://tenjo.tw/chunchuan/'},
+  {k:['jp', 'ds'], n:'私藏不藏私', p:2, a:'新北市中和區景安路167巷6號', lat:24.9947, lon:121.5061, d:'日式咖哩輕食和甜點，唐揚菠菜乾咖哩', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['us', 'br'], n:'B.burger 嗶嗶漢堡', p:2, a:'新北市中和區景平路240巷2弄19號', lat:24.9936, lon:121.5159, d:'明太子蝦排蛋堡，乾燥花牆好拍', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['it'], n:'尼西義大利麵', p:1, a:'新北市中和區景平路240巷2弄13號', lat:24.9935, lon:121.5157, d:'百元手工醬料義大利麵，CP 值高', src:'https://mibaoma.tw/nissipasta_juliano2005/'},
+  {k:['it'], n:'水牛哥義式坊', p:2, a:'新北市中和區景平路240巷1弄2號', lat:24.9930, lon:121.5155, d:'照燒章魚披薩、清炒蒜香海鮮麵', src:'https://www.gomaji.com/blog/%E6%99%AF%E5%B9%B3%E6%8D%B7%E9%81%8B%E7%AB%99%E7%BE%8E%E9%A3%9F/'},
+  {k:['it'], n:'傑米義式小坊', p:2, a:'新北市中和區大勇街27巷2號', lat:24.9938, lon:121.5165, d:'墨魚起司海鮮義大利麵', src:'https://www.gomaji.com/blog/%E4%B8%AD%E5%92%8C%E7%BE%A9%E5%A4%A7%E5%88%A9%E9%BA%B5/'},
+  {k:['it'], n:'木可義式廚房', p:1, a:'新北市中和區自立路13號', lat:24.9951, lon:121.5221, d:'清炒系列最受歡迎，100～200 元', src:'https://www.fonfood.com/store/285759'},
+  {k:['th'], n:'泰可愛 SiamCute', p:2, a:'新北市中和區大勇街25巷15弄3號', lat:24.9940, lon:121.5152, d:'道地泰菜兼賣雜貨，泰式魚餅、咖哩海鮮', src:'https://ifoodie.tw/post/5f78618e8c906d7393617031'},
+  {k:['th'], n:'泰香館泰式料理', p:2, a:'新北市中和區景平路274號', lat:24.9926, lon:121.5142, d:'小店大人潮，月亮蝦餅、椒麻雞排', src:'https://justamy9282.pixnet.net/blog/post/462623897'},
+  {k:['th', 'veg'], n:'素速泰 SusuThai', p:1, a:'新北市中和區景平路298號', lat:24.9926, lon:121.5132, d:'純素泰式，椰汁紅咖哩飯', src:'https://lololo223344.pixnet.net/blog/post/346504113'},
+  {k:['th'], n:'泰糯糯泰式料理', p:2, a:'新北市中和區安樂路41號', lat:24.9920, lon:121.5117, d:'青木瓜沙拉、羅望子炒蝦，白飯續到飽', src:'https://may128.com/thai-noir-cuisine/'},
+  {k:['th'], n:'雲川泰緬小館', p:2, a:'新北市中和區景平路462號', lat:24.9930, lon:121.5065, d:'超厚月亮蝦餅、酸辣海鮮湯', src:'https://ifoodie.tw/post/5e96b07dd6895d7c5ebdcdab'},
 ].map(s => ({...s, id:'p:' + s.n}));
 const JINGPING = {lat:24.9920, lon:121.5159};
 // 開放地圖（OpenStreetMap）資料，免金鑰；幾個資料站同時問，誰先回就用誰
@@ -230,6 +239,23 @@ function classify(t, amenity, mall) {
   if (/yes|only/.test(t['diet:vegetarian'] || '') || /yes|only/.test(t['diet:vegan'] || '')) ks.includes('veg') || ks.push('veg');
   return ks;
 }
+
+// 價位：1 = 150 元以下、2 = 150～400 元、3 = 400 元以上。地圖資料沒有價錢，用店名和種類估，你在店家頁改過就用你的
+const PRICES = {1:'150 元以下', 2:'150～400 元', 3:'400 元以上'};
+const CHEAP = /麥當勞|肯德基|摩斯|八方雲集|四海遊龍|丹丹|頂呱呱|拿坡里|subway|胖老爹|美而美|拉亞|麥味登|弘爺|q ?burger|鬍鬚張|自助餐|便當|滷肉飯|魯肉飯|麵線|豆漿|飯糰|蛋餅|水煎包|鍋貼|雞排|鹽酥雞|臭豆腐|肉圓|蚵仔|小吃|早餐|路易莎|85度c|cama|麵店|餃子館|水餃|饅頭|包子|粥|刈包|潤餅|涼麵|乾麵|陽春麵|米粉|肉羹|肉焿|碗粿|豆花|剉冰|甜湯|爭鮮|壽司郎|藏壽司|はま壽司/i;
+const PRICEY = /鐵板燒|燒肉|和牛|牛排館|王品|夏慕尼|陶板屋|西堤|原燒|藝奇|聚北海道|饗食天堂|饗饗|旭集|漢來|欣葉|吃到飽|buffet|百匯|無菜單|omakase|割烹|懷石|海底撈|麻辣鍋|酒館|bistro|steakhouse|mo-mo|涮乃葉|築間|頂級|會館|酒樓|海鮮餐廳|日本料理|居酒屋|餐酒/i;
+function estPrice(s) {
+  if (s.p) return s.p;
+  const n = s.n || '', k = s.k || [];
+  if (PRICEY.test(n)) return 3;
+  if (CHEAP.test(n)) return 1;
+  if (/fast_food|food_court|ice_cream/.test(s.am || '')) return 1;
+  if (k.some(x => ['sn', 'br', 'cf', 'ds'].includes(x))) return 1;
+  if (k.includes('cn') && /麵|飯|餃|粥|包/.test(n) && !/熱炒|快炒|餐廳|酒|宴/.test(n)) return 1;
+  return 2;
+}
+function priceOf(s) { return favs[s.id]?.p || estPrice(s); }
+function priceTag(s) { return '<span class="price">' + '$'.repeat(priceOf(s)) + '</span>'; }
 
 // 營業時間：看得懂常見寫法（例如 Mo-Fr 11:00-21:00; Sa,Su off），看不懂就回傳 null
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -313,7 +339,7 @@ function fromRow(r, v) {
   const t = {name:n, cuisine:cu};
   if (veg) t['diet:vegetarian'] = 'yes';
   const k = classify(t, am, mall);
-  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, mall, yr:v >= 2 ? yr : 0} : null;
+  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, mall, am, yr:v >= 2 ? yr : 0} : null;
 }
 function bbox(p, R) {
   const dLat = R / 111320, dLon = R / (111320 * Math.cos(p.lat * Math.PI / 180));
@@ -341,7 +367,7 @@ async function fetchArea(p, R) {
     const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon;
     if (!k.length || lat == null) continue;
     const addr = [t['addr:city'], t['addr:district'], t['addr:street'], t['addr:housenumber'] && t['addr:housenumber'] + '號'].filter(Boolean).join('');
-    v.push({id:'o:' + e.type[0] + e.id, k, n:t.name, lat, lon, a:addr, h:t.opening_hours || '', tel:t.phone || t['contact:phone'] || '', web:t.website || t['contact:website'] || '', cu:t.cuisine || ''});
+    v.push({id:'o:' + e.type[0] + e.id, k, n:t.name, lat, lon, a:addr, h:t.opening_hours || '', tel:t.phone || t['contact:phone'] || '', web:t.website || t['contact:website'] || '', cu:t.cuisine || '', am:t.amenity});
   }
   return v;
 }
@@ -396,7 +422,7 @@ function card(s, pick) {
     <div class="thumb">${emoji(s)}</div>
     <div class="info">
       <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
-      <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}<span>${esc(tags)}</span>${isOld(s) ? `<span class="old">資料 ${s.yr}</span>` : ''}</div>
+      <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}${priceTag(s)}<span>${esc(tags)}</span>${isOld(s) ? `<span class="old">資料 ${s.yr}</span>` : ''}</div>
       <div class="line3">${esc(pick ? s.d : s.mall ? '🏬 ' + s.mall : (s.a || ''))}</div>
     </div>
     <button class="heart" data-heart="${esc(s.id)}" aria-label="收藏">${f?.st ? '❤️' : '🤍'}</button>
@@ -481,7 +507,7 @@ function drawPins() {
 }
 
 // 收藏：想去／去過
-function snap(s) { return {id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web, yr:s.yr, mall:s.mall}; }
+function snap(s) { return {id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web, yr:s.yr, mall:s.mall, am:s.am, cu:s.cu, p:s.p}; }
 function setGone(s, on) {
   if (on) gone[s.id] = snap(s); else delete gone[s.id];
   store.set('gone', gone);
@@ -490,7 +516,7 @@ function saveFavs() { store.set('favs', favs); }
 function setFav(s, patch) {
   const base = favs[s.id] || {s:snap(s), st:'', r:0, note:''};
   const f = {...base, ...patch, t:Date.now()};
-  if (!f.st && !f.r && !f.note) delete favs[s.id]; else favs[s.id] = f;
+  if (!f.st && !f.r && !f.note && !f.p) delete favs[s.id]; else favs[s.id] = f;
   saveFavs();
 }
 function renderFav() {
@@ -526,6 +552,7 @@ function openShop(id) {
     <div class="rows">
       ${s.src ? `<div><i>⭐</i><span>${esc(s.d)}　<a href="${esc(s.src)}" target="_blank" rel="noopener">看食記</a></span></div>` : ''}
       <div><i>🏷️</i><span>${esc(tags)}</span></div>
+      <div><i>💰</i><span>約 ${PRICES[priceOf(s)]}${favs[id]?.p ? '（你設定的）' : s.p ? '' : '（估計，不準可在下面改）'}</span></div>
       <div><i>🕒</i><span>${oh}</span></div>
       ${s.mall ? `<div><i>🏬</i><span>在「${esc(s.mall)}」裡面</span></div>` : ''}
       <div><i>📍</i><span>${esc(s.a || (s.mall ? '地址未登記，導航會帶你到店的位置' : '地址未登記'))}</span></div>
@@ -546,6 +573,7 @@ function openShop(id) {
         <button data-st="want" class="${f.st === 'want' ? 'on' : ''}">❤️ 想去</button>
         <button data-st="been" class="${f.st === 'been' ? 'on' : ''}">✅ 去過</button>
       </div>
+      <div class="pr"><span>價位</span>${[1, 2, 3].map(i => `<button data-p="${i}" class="${f.p === i ? 'on' : ''}">${'$'.repeat(i)}<small>${PRICES[i].replace(' 元', '')}</small></button>`).join('')}</div>
       <div class="stars" style="margin-top:10px">${[1, 2, 3, 4, 5].map(i => `<button data-r="${i}" class="${i <= f.r ? 'on' : ''}">★</button>`).join('')}</div>
       <textarea id="note" placeholder="寫點筆記，例如：必點牛肉麵、週一公休">${esc(f.note)}</textarea>
     </div>
@@ -556,6 +584,10 @@ function openShop(id) {
   sh.querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
     const st = (favs[id]?.st === b.dataset.st) ? '' : b.dataset.st;
     setFav(s, {st}); sh.querySelectorAll('[data-st]').forEach(x => x.classList.toggle('on', x.dataset.st === st)); refresh();
+  });
+  sh.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
+    const pv = favs[id]?.p === +b.dataset.p ? 0 : +b.dataset.p;
+    setFav(s, {p:pv}); openShop(id); refresh();
   });
   sh.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
     const r = favs[id]?.r === +b.dataset.r ? 0 : +b.dataset.r;
@@ -604,23 +636,34 @@ async function start(retry) {
   await loadNearby(id);
 }
 
+let budget = +store.get('budget') || 0;   // 0 = 不限
 function drawOne() {
   const {picks, near} = pool(cat);
   const res = $('res'), dlg = $('draw-dlg'), label = cat === 'all' ? '全部' : CAT[cat].name;
-  if (!picks.length && !near.length) { res.innerHTML = '<p>這個範圍內還沒有店家可以抽。</p><div class="row"><button onclick="this.closest(\'dialog\').close()">好</button></div>'; dlg.showModal(); return; }
+  const seg = `<div class="seg bud">${[[0, '不限'], [1, '$ 150內'], [2, '$$ 150-400'], [3, '$$$ 400+']].map(([v, t]) => `<button data-b="${v}" class="${budget === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+  const ok = s => !budget || priceOf(s) === budget;
   // 網友推薦和想去的店多放幾次，比較容易抽到
-  const bag = picks.flatMap(s => [s, s, s]).concat(near.flatMap(s => favs[s.id]?.st === 'want' ? [s, s, s] : [s]));
+  const bag = picks.filter(ok).flatMap(s => [s, s, s]).concat(near.filter(ok).flatMap(s => favs[s.id]?.st === 'want' ? [s, s, s] : [s]));
+  const bind = () => res.querySelectorAll('[data-b]').forEach(x => x.onclick = () => { budget = +x.dataset.b; store.set('budget', budget); drawOne(); });
+  if (!dlg.open) dlg.showModal();
+  if (!bag.length) {
+    res.className = '';
+    res.innerHTML = seg + `<p class="meta">這個範圍內沒有${budget ? '這個預算的' : ''}${label === '全部' ? '' : label}店家可以抽，換個預算或把範圍調大試試。</p><div class="row"><button onclick="this.closest('dialog').close()">好</button></div>`;
+    bind(); return;
+  }
   let i = 0, s;
-  res.className = 'spin'; dlg.showModal();
+  res.className = 'spin';
   const tick = () => {
     s = bag[Math.floor(Math.random() * bag.length)];
-    res.innerHTML = `<span class="cat">${esc(label)}</span><div class="nm">${esc(s.n)}</div><div class="meta">${fmt(s.m)}</div>`;
+    res.innerHTML = seg + `<span class="cat">${esc(label)}</span><div class="nm">${esc(s.n)}</div><div class="meta">${fmt(s.m)}・${priceTag(s)} 約 ${PRICES[priceOf(s)]}</div>`;
+    bind();
     if (++i < 14) setTimeout(tick, 40 + i * 12);
     else {
       res.className = '';
-      res.innerHTML += `<div class="meta">${s.d ? '⭐ 網友推薦：' + esc(s.d) : esc(s.a || '')}</div>
+      res.innerHTML += `<div class="meta">${s.d ? '⭐ 網友推薦：' + esc(s.d) : s.mall ? '🏬 ' + esc(s.mall) : esc(s.a || '')}</div>
         <div class="row"><button id="again">再抽一次</button><a href="${navUrl(s)}" target="_blank" rel="noopener">🧭 出發</a></div>
         <div class="row" style="margin-top:8px"><button id="detail">看店家</button></div>`;
+      bind();
       $('again').onclick = drawOne;
       $('detail').onclick = () => { dlg.close(); openShop(s.id); };
     }
