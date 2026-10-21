@@ -281,10 +281,38 @@ async function overpass(q) {
   } finally { clearTimeout(tm); }
 }
 
-// 用方框查比用圓形查快很多，距離再自己算
-async function fetchArea(p, R) {
+// 主要資料：事先從開放地圖整理好、放在 App 旁邊的全台店家（每週自動更新），打開直接讀，不用等資料站
+let tileIndex;
+function getIndex() {
+  if (!tileIndex) tileIndex = fetch('data/index.json').then(r => r.ok ? r.json() : null).catch(() => null);
+  return tileIndex;
+}
+function fromRow(r) {
+  const [id, n, lat, lon, am, cu = '', h = '', a = '', tel = '', web = '', veg = 0] = r;
+  const t = {name:n, cuisine:cu};
+  if (veg) t['diet:vegetarian'] = 'yes';
+  const k = classify(t, am);
+  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu} : null;
+}
+function bbox(p, R) {
   const dLat = R / 111320, dLon = R / (111320 * Math.cos(p.lat * Math.PI / 180));
-  const bb = [p.lat - dLat, p.lon - dLon, p.lat + dLat, p.lon + dLon].map(x => x.toFixed(5)).join(',');
+  return [p.lat - dLat, p.lon - dLon, p.lat + dLat, p.lon + dLon];
+}
+async function fetchTiles(p, R) {
+  const idx = await getIndex();
+  if (!idx) return null;
+  dataDate = idx.updated;
+  const [s, w, n, e] = bbox(p, R), have = new Set(idx.tiles), keys = [];
+  for (let y = Math.floor(s * 10); y <= Math.floor(n * 10); y++)
+    for (let x = Math.floor(w * 10); x <= Math.floor(e * 10); x++) if (have.has(y + '_' + x)) keys.push(y + '_' + x);
+  if (!keys.length) return null;   // 不在台灣，改問資料站
+  const rows = await Promise.all(keys.map(k => fetch('data/' + k + '.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })));
+  return rows.flat().map(fromRow).filter(Boolean);
+}
+
+// 備用：台灣以外的地方才臨時問開放地圖資料站
+async function fetchArea(p, R) {
+  const bb = bbox(p, R).map(x => x.toFixed(5)).join(',');
   const d = await overpass(`[out:json][timeout:20];nwr["amenity"~"^(restaurant|fast_food|food_court|cafe|ice_cream)$"]["name"](${bb});out center tags qt;`);
   const v = [];
   for (const e of d.elements) {
@@ -297,34 +325,18 @@ async function fetchArea(p, R) {
   return v;
 }
 
-// 快取：同一帶（約 1 公里格）一週內直接秀，超過一天背景再更新
-function cacheKey(p) { return 'near3:' + p.lat.toFixed(2) + ',' + p.lon.toFixed(2); }
+let dataDate = '';
 async function loadNearby(id) {
-  const key = cacheKey(here), c = store.get(key);
-  if (c && Date.now() - c.t < 7 * 864e5) {
-    nearby = c.v; loading = false; render();
-    if (Date.now() - c.t < 864e5) return;
-  }
   const p = here;
-  if (!c) {
-    // 先抓 1.5 公里，馬上有店可看；再補滿 5 公里
-    try {
-      const v = await fetchArea(p, 1500);
-      if (id !== runId) return;
-      nearby = v; loading = false; render();
-    } catch (e) {}
-  }
-  try {
-    const v = await fetchArea(p, 5000);
+  let v = null;
+  try { v = await fetchTiles(p, 5000); } catch (e) {}
+  if (id !== runId) return;
+  if (!v) {
+    try { v = await fetchArea(p, 5000); } catch (e) {}
     if (id !== runId) return;
-    nearby = v; loading = false; failed = false;
-    for (const x of Object.keys(localStorage)) if (x.startsWith('near')) try { localStorage.removeItem(x); } catch (e) {}
-    store.set(key, {t:Date.now(), v});
-  } catch (e) {
-    if (id !== runId) return;
-    if (!nearby.length) failed = true;
-    loading = false;
   }
+  loading = false;
+  if (v) { nearby = v; failed = false; } else if (!nearby.length) failed = true;
   render();
 }
 
@@ -398,10 +410,10 @@ function render() {
   if (picks.length) h += `<div class="sec">⭐ 網友推薦 <small>景平站一帶</small></div>` + picks.map(s => card(s, true)).join('');
   h += `<div class="sec">📍 附近${name}店家 <small>由近到遠${loading && nearby.length ? '，還在補更遠的店…' : ''}</small></div>`;
   if (waiting) h += '<div class="empty">正在找附近店家…</div>';
-  else if (failed) h += '<div class="empty">附近店家暫時抓不到（地圖資料站忙線）。<br><button onclick="start(true)">再試一次</button></div>';
+  else if (failed) h += '<div class="empty">附近店家暫時抓不到，可能是網路不穩。<br><button onclick="start(true)">再試一次</button></div>';
   else if (!near.length) h += `<div class="empty">找不到符合的店家${onlyOpen ? '（只看營業中：很多小店沒登記營業時間）' : ''}，試試別的餐種、關鍵字或把範圍調大。</div>`;
   else h += near.slice(0, 100).map(s => card(s, false)).join('') + (near.length > 100 ? `<div class="empty">還有 ${near.length - 100} 家，用搜尋或縮小範圍找更快</div>` : '');
-  h += '<footer>附近店家來自 OpenStreetMap 開放地圖，免金鑰<br>網友推薦整理自食記與美食平台，出發前建議先確認營業時間</footer>';
+  h += '<footer>附近店家來自 OpenStreetMap 開放地圖，免金鑰${dataDate ? '（' + dataDate + ' 更新）' : ''}<br>網友推薦整理自食記與美食平台，出發前建議先確認營業時間</footer>';
   $('v-list').innerHTML = h;
   $('draw').onclick = drawOne;
   if (view === 'map') drawMap();
