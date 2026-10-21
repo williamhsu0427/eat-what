@@ -161,6 +161,7 @@ const CATS = [
   {k:'ds', name:'甜點', e:'🍰', c:/dessert|cake|ice_cream|pastry|crepe|waffle|frozen_yogurt|donut|shaved_ice/, n:/甜點|蛋糕|甜品|豆花|剉冰|刨冰|冰品|鬆餅|可麗餅|布丁|dessert|cake|gelato|冰淇淋/i},
   {k:'cf', name:'咖啡', e:'☕', c:/coffee/, n:/咖啡|cafe|café|coffee|珈琲|starbucks|星巴克|路易莎|cama/i, x:/茶|飲料|tea/i},
   {k:'veg', name:'素食', e:'🥗', c:/vegetarian|vegan/, n:/素食|蔬食|素|vegan/i},
+  {k:'mall', name:'百貨美食街', e:'🏬', c:/(?!)/, n:/美食街|美食廣場|food ?court|美食館/i},
 ];
 const CAT = Object.fromEntries(CATS.map(c => [c.k, c]));
 
@@ -213,7 +214,7 @@ function dist(a, b) {
 function fmt(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' 公尺' : (m / 1000).toFixed(1) + ' 公里'; }
 function emoji(s) { return CAT[s.k[0]]?.e || '🍽️'; }
 
-function classify(t, amenity) {
+function classify(t, amenity, mall) {
   const c = (t.cuisine || '').toLowerCase(), n = t.name || '', ks = [];
   for (const C of CATS) {
     // 店名排除字只擋「看店名猜」的情況，地圖上標好的料理種類照收
@@ -221,6 +222,10 @@ function classify(t, amenity) {
     if (C.c.test(c) || byName) ks.push(C.k);
   }
   if (amenity === 'ice_cream' && !ks.includes('ds')) ks.push('ds');
+  // 開在百貨、大賣場裡的店，或本身就是美食街
+  if ((mall || amenity === 'food_court' && !/學生|學餐|宿舍|舍|員工|大學|高中|國中|國小|女[一二三四五六七八九十]|男[一二三四五六七八九十]/.test(n)) && !ks.includes('mall')) ks.push('mall');
+  // 店名看不出料理種類的餐廳，至少放進「全部」；咖啡店那類看不出來的多半是飲料店，就不收
+  if (!ks.length && /^(restaurant|fast_food|food_court)$/.test(amenity || '')) ks.push('etc');
   if (/yes|only/.test(t['diet:vegetarian'] || '') || /yes|only/.test(t['diet:vegan'] || '')) ks.includes('veg') || ks.push('veg');
   return ks;
 }
@@ -300,13 +305,14 @@ function getIndex() {
   return tileIndex;
 }
 function fromRow(r, v) {
-  // v2 的第 5 欄是資料最後更新年份
+  // v2 起第 5 欄是資料最後更新年份，v3 起第 6 欄是所在的百貨／大賣場
   const [id, n, lat, lon, yr] = r;
-  const [am, cu = '', h = '', a = '', tel = '', web = '', veg = 0] = r.slice(v === 2 ? 5 : 4);
+  const mall = v >= 3 ? r[5] || '' : '';
+  const [am, cu = '', h = '', a = '', tel = '', web = '', veg = 0] = r.slice(v >= 3 ? 6 : v === 2 ? 5 : 4);
   const t = {name:n, cuisine:cu};
   if (veg) t['diet:vegetarian'] = 'yes';
-  const k = classify(t, am);
-  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, yr:v === 2 ? yr : 0} : null;
+  const k = classify(t, am, mall);
+  return k.length ? {id:'o:' + id, k, n, lat, lon, a, h, tel, web, cu, mall, yr:v >= 2 ? yr : 0} : null;
 }
 function bbox(p, R) {
   const dLat = R / 111320, dLon = R / (111320 * Math.cos(p.lat * Math.PI / 180));
@@ -368,7 +374,7 @@ function igUrl(s) { return 'https://www.instagram.com/explore/search/keyword/?q=
 // 篩選：餐種、搜尋字、營業中、距離
 function matchQuery(s) {
   if (!query) return true;
-  const hay = (s.n + ' ' + (s.a || '') + ' ' + (s.d || '') + ' ' + s.k.map(k => CAT[k]?.name).join(' ') + ' ' + (s.cu || '')).toLowerCase();
+  const hay = (s.n + ' ' + (s.a || '') + ' ' + (s.mall || '') + ' ' + (s.d || '') + ' ' + s.k.map(k => CAT[k]?.name).join(' ') + ' ' + (s.cu || '')).toLowerCase();
   return query.toLowerCase().split(/\s+/).every(w => hay.includes(w));
 }
 function pool(k) {
@@ -390,7 +396,7 @@ function card(s, pick) {
     <div class="info">
       <div class="top"><b>${esc(s.n)}</b><span class="dist">${fmt(s.m)}</span></div>
       <div class="line2">${pick ? '<span class="badge">網友推薦</span>' : ''}${mine}${openHtml(s)}<span>${esc(tags)}</span>${isOld(s) ? `<span class="old">資料 ${s.yr}</span>` : ''}</div>
-      <div class="line3">${esc(pick ? s.d : (s.a || ''))}</div>
+      <div class="line3">${esc(pick ? s.d : s.mall ? '🏬 ' + s.mall : (s.a || ''))}</div>
     </div>
     <button class="heart" data-heart="${esc(s.id)}" aria-label="收藏">${f?.st ? '❤️' : '🤍'}</button>
   </div>`;
@@ -462,7 +468,7 @@ function drawMap() {
 }
 
 // 收藏：想去／去過
-function snap(s) { return {id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web, yr:s.yr}; }
+function snap(s) { return {id:s.id, k:s.k, n:s.n, a:s.a, lat:s.lat, lon:s.lon, h:s.h, d:s.d, src:s.src, tel:s.tel, web:s.web, yr:s.yr, mall:s.mall}; }
 function setGone(s, on) {
   if (on) gone[s.id] = snap(s); else delete gone[s.id];
   store.set('gone', gone);
@@ -500,7 +506,7 @@ function openShop(id) {
   if (!s0) return;
   const s = {...s0, m:here ? dist(here, s0) : 0};
   const f = favs[id] || {st:'', r:0, note:''};
-  const tags = s.k.map(k => CAT[k] ? CAT[k].e + ' ' + CAT[k].name : '').filter(Boolean).join('、');
+  const tags = s.k.map(k => CAT[k] ? CAT[k].e + ' ' + CAT[k].name : '').filter(Boolean).join('、') || '其他';
   const oh = s.h ? `${openHtml(s)} ${esc(ohText(s.h))}` : '營業時間未知，可按「Google 評論」查看';
   $('sheet').innerHTML = `<div class="sb"><div class="grab"></div>
     <div class="sh-top"><div class="thumb">${emoji(s)}</div><div><h2>${esc(s.n)}</h2><div class="line2">${s.src ? '<span class="badge">網友推薦</span>' : ''}<span>${fmt(s.m)}</span></div></div><button class="sh-x" onclick="sheet.close()">✕</button></div>
@@ -508,7 +514,8 @@ function openShop(id) {
       ${s.src ? `<div><i>⭐</i><span>${esc(s.d)}　<a href="${esc(s.src)}" target="_blank" rel="noopener">看食記</a></span></div>` : ''}
       <div><i>🏷️</i><span>${esc(tags)}</span></div>
       <div><i>🕒</i><span>${oh}</span></div>
-      <div><i>📍</i><span>${esc(s.a || '地址未登記')}</span></div>
+      ${s.mall ? `<div><i>🏬</i><span>在「${esc(s.mall)}」裡面</span></div>` : ''}
+      <div><i>📍</i><span>${esc(s.a || (s.mall ? '地址未登記，導航會帶你到店的位置' : '地址未登記'))}</span></div>
       ${s.yr ? `<div><i>🗓️</i><span${isOld(s) ? ' class="old"' : ''}>地圖資料最後更新：${s.yr} 年${isOld(s) ? '（很久沒人更新，可能已經倒了）' : ''}</span></div>` : ''}
       ${s.tel ? `<div><i>📞</i><a href="tel:${esc(s.tel.replace(/\s/g, ''))}">${esc(s.tel)}</a></div>` : ''}
       ${s.web ? `<div><i>🔗</i><a href="${esc(s.web)}" target="_blank" rel="noopener">店家網站</a></div>` : ''}
